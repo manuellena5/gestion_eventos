@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tarjetas · Club Deportivo Mitre</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    [x-cloak] { display: none; }
+    .tab-active { @apply border-b-2 border-blue-600 text-blue-600 font-semibold; }
+
+    /* Badge colores */
+    .badge-pagado   { background:#d1fae5; color:#065f46; }
+    .badge-seña     { background:#fef3c7; color:#92400e; }
+    .badge-pendiente{ background:#fee2e2; color:#991b1b; }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { font-size: 12px; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #ccc; padding: 4px 8px; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-800">
+
+<!-- ===================== SETUP INICIAL ===================== -->
+<div id="setupScreen" class="hidden fixed inset-0 bg-white z-50 flex items-center justify-center p-6">
+  <div class="max-w-md w-full">
+    <div class="text-center mb-8">
+      <div class="text-4xl mb-2">🎭</div>
+      <h1 class="text-2xl font-bold text-gray-800">Club Deportivo Mitre</h1>
+      <p class="text-gray-500 mt-1">Gestión de Tarjetas para Peñas</p>
+    </div>
+    <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+      <h2 class="font-semibold text-gray-700 mb-4">Configuración inicial</h2>
+      <label class="block text-sm text-gray-600 mb-1">URL del Web App (Google Apps Script)</label>
+      <input id="setupUrl" type="url"
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder="https://script.google.com/macros/s/..." />
+      <p class="text-xs text-gray-400 mt-2 mb-4">Pegá la URL de tu Web App desplegada. Ver README.md para instrucciones.</p>
+      <button onclick="App.saveSetup()"
+        class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+        Guardar y continuar →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP PRINCIPAL ===================== -->
+<div id="mainApp" class="hidden max-w-4xl mx-auto">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40 no-print">
+    <div>
+      <h1 class="font-bold text-gray-800 text-lg" id="headerEventName">Club Deportivo Mitre</h1>
+      <p class="text-xs text-gray-400" id="headerEventDate"></p>
+    </div>
+    <button onclick="App.refresh()" title="Actualizar" class="text-gray-400 hover:text-blue-600 transition text-xl">↻</button>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="bg-white border-b border-gray-200 flex no-print" id="tabNav">
+    <button class="flex-1 py-3 text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-registrar" onclick="App.showTab('tab-registrar')">✏️ Registrar</button>
+    <button class="flex-1 py-3 text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-listado"   onclick="App.showTab('tab-listado')">📋 Listado</button>
+    <button class="flex-1 py-3 text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-resumen"   onclick="App.showTab('tab-resumen')">📊 Resumen</button>
+    <button class="flex-1 py-3 text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-config"    onclick="App.showTab('tab-config')">⚙️ Config</button>
+  </nav>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-white text-sm font-medium shadow-lg z-50 transition-all no-print"></div>
+
+  <!-- Loading overlay -->
+  <div id="loadingOverlay" class="hidden fixed inset-0 bg-white/70 z-40 flex items-center justify-center no-print">
+    <div class="text-gray-500 text-sm animate-pulse">Cargando...</div>
+  </div>
+
+  <!-- =========================================================== -->
+  <!-- TAB: REGISTRAR                                              -->
+  <!-- =========================================================== -->
+  <section id="tab-registrar" class="tab-content p-4">
+    <h2 class="font-semibold text-gray-700 mb-4">Nueva tarjeta</h2>
+
+    <form id="formRegistro" class="space-y-4" onsubmit="return false;">
+      <!-- Nombre -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo <span class="text-red-500">*</span></label>
+        <input id="f-nombre" type="text" required
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Ej: Juan Pérez" />
+      </div>
+
+      <!-- Tipo de precio -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de tarjeta <span class="text-red-500">*</span></label>
+        <select id="f-tipoPrecio" required onchange="App.onTipoChange()"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+          <option value="">-- Seleccioná el tipo --</option>
+        </select>
+        <p id="f-precioLabel" class="text-xs text-gray-400 mt-1"></p>
+      </div>
+
+      <!-- Cantidad -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad <span class="text-red-500">*</span></label>
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="App.changeQty(-1)"
+            class="w-10 h-10 rounded-full border border-gray-300 text-xl font-bold text-gray-600 hover:bg-gray-100 flex items-center justify-center">−</button>
+          <input id="f-cantidad" type="number" min="1" max="99" value="1" required
+            onchange="App.calcTotal()"
+            class="w-20 text-center text-xl font-bold border border-gray-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <button type="button" onclick="App.changeQty(1)"
+            class="w-10 h-10 rounded-full border border-gray-300 text-xl font-bold text-gray-600 hover:bg-gray-100 flex items-center justify-center">+</button>
+        </div>
+      </div>
+
+      <!-- Total calculado -->
+      <div id="totalBox" class="hidden bg-blue-50 rounded-lg p-3 text-center">
+        <p class="text-xs text-blue-600 uppercase tracking-wide mb-1">Total a cobrar</p>
+        <p id="totalLabel" class="text-2xl font-bold text-blue-700"></p>
+      </div>
+
+      <!-- Estado de pago -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Estado del pago <span class="text-red-500">*</span></label>
+        <div class="grid grid-cols-3 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="f-estado" value="pagado" class="peer hidden" onchange="App.onEstadoChange()" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 transition">
+              ✅<br/><span class="font-medium">Pagado</span>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="f-estado" value="seña" class="peer hidden" onchange="App.onEstadoChange()" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-yellow-500 peer-checked:bg-yellow-50 peer-checked:text-yellow-700 transition">
+              💵<br/><span class="font-medium">Seña</span>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="f-estado" value="pendiente" class="peer hidden" onchange="App.onEstadoChange()" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-red-400 peer-checked:bg-red-50 peer-checked:text-red-700 transition">
+              ⏳<br/><span class="font-medium">Pendiente</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Monto seña (condicional) -->
+      <div id="señaBox" class="hidden">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Monto de la seña $</label>
+        <input id="f-montoPagado" type="number" min="0" value="0" onchange="App.calcDeuda()"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <p id="deudaLabel" class="text-xs text-orange-600 mt-1 font-medium"></p>
+      </div>
+
+      <!-- Método de pago -->
+      <div id="metodoPagoBox" class="hidden">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Método de pago</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="f-metodo" value="efectivo" class="peer hidden" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition">
+              💰 Efectivo
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="f-metodo" value="transferencia" class="peer hidden" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition">
+              📲 Transferencia
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Notas -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Notas (opcional)</label>
+        <input id="f-notas" type="text"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Ej: familiar del jugador #10" />
+      </div>
+
+      <!-- Submit -->
+      <button id="btnSubmitReg" type="button" onclick="App.submitRegistro()"
+        class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold text-lg hover:bg-blue-700 transition shadow-sm">
+        Guardar registro
+      </button>
+    </form>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- TAB: LISTADO                                                -->
+  <!-- =========================================================== -->
+  <section id="tab-listado" class="tab-content hidden p-4">
+    <div class="flex gap-2 mb-4 no-print">
+      <input id="searchInput" type="text" placeholder="Buscar por nombre..."
+        oninput="App.filterList()"
+        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <select id="filterEstado" onchange="App.filterList()"
+        class="border border-gray-300 rounded-lg px-2 py-2 text-sm bg-white focus:outline-none">
+        <option value="">Todos</option>
+        <option value="pagado">Pagados</option>
+        <option value="seña">Con seña</option>
+        <option value="pendiente">Pendientes</option>
+      </select>
+    </div>
+
+    <!-- Acciones de exportación -->
+    <div class="flex gap-2 mb-4 no-print">
+      <button onclick="App.exportCSV()" class="flex-1 border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">
+        ⬇️ Exportar CSV
+      </button>
+      <button onclick="window.print()" class="flex-1 border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">
+        🖨️ Imprimir
+      </button>
+    </div>
+
+    <div id="listContainer">
+      <!-- Se renderiza dinámicamente -->
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- TAB: RESUMEN                                                -->
+  <!-- =========================================================== -->
+  <section id="tab-resumen" class="tab-content hidden p-4">
+    <!-- Stats cards -->
+    <div class="grid grid-cols-2 gap-3 mb-6">
+      <div class="bg-white rounded-xl p-4 border border-gray-200 text-center">
+        <p class="text-3xl font-bold text-gray-800" id="stat-total-tarjetas">—</p>
+        <p class="text-xs text-gray-500 mt-1">Total tarjetas</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-gray-200 text-center">
+        <p class="text-3xl font-bold text-gray-800" id="stat-total-personas">—</p>
+        <p class="text-xs text-gray-500 mt-1">Personas registradas</p>
+      </div>
+      <div class="bg-green-50 rounded-xl p-4 border border-green-200 text-center">
+        <p class="text-3xl font-bold text-green-700" id="stat-pagado">—</p>
+        <p class="text-xs text-green-600 mt-1">✅ Tarjetas pagas</p>
+      </div>
+      <div class="bg-yellow-50 rounded-xl p-4 border border-yellow-200 text-center">
+        <p class="text-3xl font-bold text-yellow-700" id="stat-seña">—</p>
+        <p class="text-xs text-yellow-600 mt-1">💵 Con seña</p>
+      </div>
+      <div class="bg-red-50 rounded-xl p-4 border border-red-200 text-center col-span-2">
+        <p class="text-3xl font-bold text-red-600" id="stat-pendiente">—</p>
+        <p class="text-xs text-red-500 mt-1">⏳ Pendientes de pago</p>
+      </div>
+    </div>
+
+    <!-- Montos -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
+      <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">💰 Movimiento de dinero</div>
+      <div class="divide-y divide-gray-100">
+        <div class="flex justify-between px-4 py-3 text-sm">
+          <span class="text-gray-500">Total cobrado</span>
+          <span class="font-semibold text-green-700" id="stat-cobrado">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-3 text-sm">
+          <span class="text-gray-500">Pendiente por cobrar</span>
+          <span class="font-semibold text-red-600" id="stat-por-cobrar">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-3 text-sm">
+          <span class="text-gray-500">Total esperado</span>
+          <span class="font-semibold text-gray-800" id="stat-esperado">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Por tipo de precio -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">📊 Por tipo de tarjeta</div>
+      <div id="stat-por-tipo" class="divide-y divide-gray-100">
+        <!-- Dinámico -->
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- TAB: CONFIG                                                 -->
+  <!-- =========================================================== -->
+  <section id="tab-config" class="tab-content hidden p-4">
+    <h2 class="font-semibold text-gray-700 mb-4">Configuración del evento</h2>
+
+    <div class="space-y-4">
+      <!-- Nombre del evento -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del evento</label>
+        <input id="cfg-eventName" type="text"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Ej: Peña Folklórica - Enero 2025" />
+      </div>
+
+      <!-- Fecha del evento -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha del evento</label>
+        <input id="cfg-eventDate" type="date"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      <!-- Tipos de precio -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-sm font-medium text-gray-700">Tipos de tarjeta y precios</label>
+          <button onclick="App.addPriceType()"
+            class="text-blue-600 text-sm font-medium hover:text-blue-800">+ Agregar</button>
+        </div>
+        <div id="priceTypesList" class="space-y-2">
+          <!-- Dinámico -->
+        </div>
+        <p class="text-xs text-gray-400 mt-2">Definí un tipo por cada precio diferente (General, Especial, Menor, etc.)</p>
+      </div>
+
+      <button onclick="App.saveConfig()"
+        class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+        Guardar configuración
+      </button>
+
+      <!-- Separador -->
+      <hr class="border-gray-200" />
+
+      <!-- URL del script -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">URL del Web App</label>
+        <input id="cfg-apiUrl" type="url"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="https://script.google.com/macros/s/..." />
+        <button onclick="App.saveApiUrl()" class="mt-2 text-blue-600 text-sm font-medium hover:text-blue-800">
+          Actualizar URL
+        </button>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /mainApp -->
+
+<!-- ===================== MODAL EDITAR ===================== -->
+<div id="editModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4 no-print">
+  <div class="bg-white rounded-2xl w-full max-w-md p-5 space-y-4">
+    <div class="flex items-center justify-between">
+      <h3 class="font-semibold text-gray-800">Editar registro</h3>
+      <button onclick="App.closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+    </div>
+
+    <input type="hidden" id="edit-id" />
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Estado del pago</label>
+      <select id="edit-estado" onchange="App.onEditEstadoChange()"
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="pagado">✅ Pagado</option>
+        <option value="seña">💵 Con seña</option>
+        <option value="pendiente">⏳ Pendiente</option>
+      </select>
+    </div>
+
+    <div id="edit-montoPagadoBox" class="hidden">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Monto pagado $</label>
+      <input id="edit-montoPagado" type="number" min="0"
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Método de pago</label>
+      <select id="edit-metodoPago"
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">— Sin especificar —</option>
+        <option value="efectivo">💰 Efectivo</option>
+        <option value="transferencia">📲 Transferencia</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+      <input id="edit-notas" type="text"
+        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    </div>
+
+    <div class="flex gap-3">
+      <button onclick="App.saveEdit()"
+        class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+        Guardar
+      </button>
+      <button onclick="App.closeModal()"
+        class="flex-1 border border-gray-300 text-gray-600 py-2 rounded-lg hover:bg-gray-50 transition">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// ESTADO GLOBAL
+// ============================================================
+const App = (() => {
+  const state = {
+    apiUrl: '',
+    config: { eventName: '', eventDate: '', priceTypes: [] },
+    registrations: [],
+    filteredRegs: [],
+    currentTab: 'tab-registrar',
+  };
+
+  // ============================================================
+  // INICIALIZACIÓN
+  // ============================================================
+  async function init() {
+    state.apiUrl = localStorage.getItem('cdm_api_url') || '';
+
+    if (!state.apiUrl) {
+      show('setupScreen');
+      hide('mainApp');
+      return;
+    }
+
+    hide('setupScreen');
+    show('mainApp');
+    showTab('tab-registrar');
+    await loadAll();
+  }
+
+  async function loadAll() {
+    showLoading(true);
+    try {
+      await Promise.all([loadConfig(), loadRegistrations()]);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  // ============================================================
+  // SETUP
+  // ============================================================
+  function saveSetup() {
+    const url = document.getElementById('setupUrl').value.trim();
+    if (!url || !url.startsWith('https://script.google.com')) {
+      alert('Ingresá una URL válida de Google Apps Script.');
+      return;
+    }
+    localStorage.setItem('cdm_api_url', url);
+    state.apiUrl = url;
+    hide('setupScreen');
+    show('mainApp');
+    showTab('tab-config');
+    toast('✅ URL guardada. Configurá el evento.');
+  }
+
+  // ============================================================
+  // API
+  // ============================================================
+  async function api(action, data = null) {
+    const url = new URL(state.apiUrl);
+    url.searchParams.set('action', action);
+    if (data !== null) url.searchParams.set('data', JSON.stringify(data));
+
+    const res = await fetch(url.toString(), { redirect: 'follow' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  // ============================================================
+  // CONFIG
+  // ============================================================
+  async function loadConfig() {
+    try {
+      const r = await api('getConfig');
+      if (r.success) {
+        state.config = r.config;
+        renderConfigForm();
+        populatePriceTypeSelect();
+        updateHeader();
+      }
+    } catch (e) {
+      toast('⚠️ Error al cargar configuración', 'error');
+    }
+  }
+
+  function renderConfigForm() {
+    document.getElementById('cfg-eventName').value = state.config.eventName || '';
+    document.getElementById('cfg-eventDate').value = state.config.eventDate || '';
+    document.getElementById('cfg-apiUrl').value = state.apiUrl;
+    renderPriceTypesList();
+  }
+
+  function renderPriceTypesList() {
+    const container = document.getElementById('priceTypesList');
+    const types = state.config.priceTypes || [];
+
+    container.innerHTML = types.length === 0
+      ? '<p class="text-sm text-gray-400 italic">Sin tipos de tarjeta definidos.</p>'
+      : types.map((t, i) => `
+          <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+            <input type="text" value="${esc(t.name)}" placeholder="Nombre (ej: General)"
+              oninput="App.updatePriceType(${i}, 'name', this.value)"
+              class="flex-1 bg-transparent text-sm border-b border-gray-300 focus:outline-none focus:border-blue-500" />
+            <span class="text-gray-400 text-sm">$</span>
+            <input type="number" value="${t.amount}" placeholder="0" min="0"
+              oninput="App.updatePriceType(${i}, 'amount', parseFloat(this.value)||0)"
+              class="w-24 bg-transparent text-sm border-b border-gray-300 text-right focus:outline-none focus:border-blue-500" />
+            <button onclick="App.removePriceType(${i})" class="text-red-400 hover:text-red-600 font-bold text-lg leading-none">×</button>
+          </div>`
+      ).join('');
+  }
+
+  function addPriceType() {
+    if (!state.config.priceTypes) state.config.priceTypes = [];
+    state.config.priceTypes.push({ name: '', amount: 0 });
+    renderPriceTypesList();
+  }
+
+  function removePriceType(i) {
+    state.config.priceTypes.splice(i, 1);
+    renderPriceTypesList();
+  }
+
+  function updatePriceType(i, field, val) {
+    state.config.priceTypes[i][field] = val;
+  }
+
+  async function saveConfig() {
+    const cfg = {
+      eventName: document.getElementById('cfg-eventName').value.trim(),
+      eventDate: document.getElementById('cfg-eventDate').value,
+      priceTypes: state.config.priceTypes || []
+    };
+    if (!cfg.eventName) { toast('Ingresá el nombre del evento.', 'error'); return; }
+    if (cfg.priceTypes.length === 0) { toast('Agregá al menos un tipo de tarjeta.', 'error'); return; }
+
+    showLoading(true);
+    try {
+      const r = await api('saveConfig', cfg);
+      if (r.success) {
+        state.config = cfg;
+        populatePriceTypeSelect();
+        updateHeader();
+        toast('✅ Configuración guardada');
+      } else {
+        toast('❌ Error: ' + (r.error || 'desconocido'), 'error');
+      }
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function saveApiUrl() {
+    const url = document.getElementById('cfg-apiUrl').value.trim();
+    if (!url) return;
+    localStorage.setItem('cdm_api_url', url);
+    state.apiUrl = url;
+    toast('✅ URL actualizada');
+  }
+
+  function populatePriceTypeSelect() {
+    const sel = document.getElementById('f-tipoPrecio');
+    const types = state.config.priceTypes || [];
+    sel.innerHTML = '<option value="">-- Seleccioná el tipo --</option>' +
+      types.map(t => `<option value="${esc(t.name)}" data-amount="${t.amount}">${esc(t.name)} — $${fmt(t.amount)}</option>`).join('');
+    document.getElementById('f-precioLabel').textContent = '';
+    document.getElementById('totalBox').classList.add('hidden');
+  }
+
+  function updateHeader() {
+    document.getElementById('headerEventName').textContent = state.config.eventName || 'Club Deportivo Mitre';
+    const d = state.config.eventDate;
+    document.getElementById('headerEventDate').textContent = d ? 'Evento: ' + formatDate(d) : '';
+  }
+
+  // ============================================================
+  // REGISTROS
+  // ============================================================
+  async function loadRegistrations() {
+    try {
+      const r = await api('getRegistrations');
+      if (r.success) {
+        state.registrations = r.registrations;
+        state.filteredRegs = [...state.registrations];
+        renderList();
+        renderResumen();
+      }
+    } catch (e) {
+      toast('⚠️ Error al cargar registros', 'error');
+    }
+  }
+
+  // --- Formulario de registro ---
+  function onTipoChange() {
+    const sel = document.getElementById('f-tipoPrecio');
+    const opt = sel.options[sel.selectedIndex];
+    const amount = parseFloat(opt.dataset.amount) || 0;
+    document.getElementById('f-precioLabel').textContent = amount ? `Precio unitario: $${fmt(amount)}` : '';
+    calcTotal();
+  }
+
+  function changeQty(delta) {
+    const inp = document.getElementById('f-cantidad');
+    const newVal = Math.max(1, (parseInt(inp.value) || 1) + delta);
+    inp.value = newVal;
+    calcTotal();
+  }
+
+  function calcTotal() {
+    const sel = document.getElementById('f-tipoPrecio');
+    const opt = sel.options[sel.selectedIndex];
+    const amount = parseFloat(opt?.dataset?.amount) || 0;
+    const qty = parseInt(document.getElementById('f-cantidad').value) || 1;
+    const total = amount * qty;
+
+    if (amount && qty) {
+      document.getElementById('totalBox').classList.remove('hidden');
+      document.getElementById('totalLabel').textContent = `$${fmt(total)}`;
+      calcDeuda();
+    } else {
+      document.getElementById('totalBox').classList.add('hidden');
+    }
+  }
+
+  function onEstadoChange() {
+    const estado = getRadioVal('f-estado');
+    const señaBox = document.getElementById('señaBox');
+    const metodoPagoBox = document.getElementById('metodoPagoBox');
+
+    if (estado === 'seña') {
+      señaBox.classList.remove('hidden');
+      metodoPagoBox.classList.remove('hidden');
+      calcDeuda();
+    } else if (estado === 'pagado') {
+      señaBox.classList.add('hidden');
+      metodoPagoBox.classList.remove('hidden');
+    } else {
+      señaBox.classList.add('hidden');
+      metodoPagoBox.classList.add('hidden');
+    }
+  }
+
+  function calcDeuda() {
+    const sel = document.getElementById('f-tipoPrecio');
+    const opt = sel.options[sel.selectedIndex];
+    const amount = parseFloat(opt?.dataset?.amount) || 0;
+    const qty = parseInt(document.getElementById('f-cantidad').value) || 1;
+    const total = amount * qty;
+    const pagado = parseFloat(document.getElementById('f-montoPagado').value) || 0;
+    const resta = total - pagado;
+    document.getElementById('deudaLabel').textContent = resta > 0 ? `Adeuda: $${fmt(resta)}` : '';
+  }
+
+  async function submitRegistro() {
+    const nombre = document.getElementById('f-nombre').value.trim();
+    const tipoSel = document.getElementById('f-tipoPrecio');
+    const tipoPrecio = tipoSel.value;
+    const precioUnitario = parseFloat(tipoSel.options[tipoSel.selectedIndex]?.dataset?.amount) || 0;
+    const cantidad = parseInt(document.getElementById('f-cantidad').value) || 1;
+    const estado = getRadioVal('f-estado');
+    const metodoPago = getRadioVal('f-metodo');
+    const notas = document.getElementById('f-notas').value.trim();
+
+    if (!nombre) { toast('Ingresá el nombre.', 'error'); return; }
+    if (!tipoPrecio) { toast('Seleccioná el tipo de tarjeta.', 'error'); return; }
+    if (!estado) { toast('Seleccioná el estado del pago.', 'error'); return; }
+
+    const totalDebe = precioUnitario * cantidad;
+    let montoPagado = 0;
+
+    if (estado === 'pagado') {
+      montoPagado = totalDebe;
+    } else if (estado === 'seña') {
+      montoPagado = parseFloat(document.getElementById('f-montoPagado').value) || 0;
+    }
+
+    const reg = { nombre, cantidad, tipoPrecio, precioUnitario, totalDebe, montoPagado, estado, metodoPago, notas };
+
+    showLoading(true);
+    try {
+      const r = await api('addRegistration', reg);
+      if (r.success) {
+        toast('✅ Registro guardado');
+        resetForm();
+        await loadRegistrations();
+      } else {
+        toast('❌ Error: ' + (r.error || 'desconocido'), 'error');
+      }
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function resetForm() {
+    document.getElementById('f-nombre').value = '';
+    document.getElementById('f-tipoPrecio').selectedIndex = 0;
+    document.getElementById('f-cantidad').value = 1;
+    document.querySelectorAll('input[name="f-estado"]').forEach(r => r.checked = false);
+    document.querySelectorAll('input[name="f-metodo"]').forEach(r => r.checked = false);
+    document.getElementById('f-notas').value = '';
+    document.getElementById('f-montoPagado').value = 0;
+    document.getElementById('f-precioLabel').textContent = '';
+    document.getElementById('totalBox').classList.add('hidden');
+    document.getElementById('señaBox').classList.add('hidden');
+    document.getElementById('metodoPagoBox').classList.add('hidden');
+    document.getElementById('deudaLabel').textContent = '';
+  }
+
+  // ============================================================
+  // LISTADO
+  // ============================================================
+  function filterList() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const est = document.getElementById('filterEstado').value;
+    state.filteredRegs = state.registrations.filter(r => {
+      const matchNombre = r.nombre.toLowerCase().includes(q);
+      const matchEstado = !est || r.estado === est;
+      return matchNombre && matchEstado;
+    });
+    renderList();
+  }
+
+  function renderList() {
+    const container = document.getElementById('listContainer');
+    const regs = state.filteredRegs;
+
+    if (regs.length === 0) {
+      container.innerHTML = `<div class="text-center py-12 text-gray-400">
+        <div class="text-4xl mb-2">📋</div>
+        <p class="text-sm">Sin registros</p>
+      </div>`;
+      return;
+    }
+
+    // Ordenar: pendientes primero, luego señas, luego pagados
+    const order = { pendiente: 0, seña: 1, pagado: 2 };
+    const sorted = [...regs].sort((a, b) => (order[a.estado] || 0) - (order[b.estado] || 0));
+
+    container.innerHTML = sorted.map(r => {
+      const totalDebe = Number(r.totalDebe) || 0;
+      const montoPagado = Number(r.montoPagado) || 0;
+      const resta = totalDebe - montoPagado;
+      const estadoBadge = {
+        pagado:   '<span class="badge-pagado   px-2 py-0.5 rounded-full text-xs font-medium">✅ Pagado</span>',
+        seña:     '<span class="badge-seña     px-2 py-0.5 rounded-full text-xs font-medium">💵 Seña</span>',
+        pendiente:'<span class="badge-pendiente px-2 py-0.5 rounded-full text-xs font-medium">⏳ Pendiente</span>',
+      }[r.estado] || '';
+
+      return `
+        <div class="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+          <div class="flex items-start justify-between">
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-gray-800 truncate">${esc(r.nombre)}</p>
+              <p class="text-xs text-gray-500 mt-0.5">${r.cantidad} × ${esc(r.tipoPrecio)} — $${fmt(Number(r.precioUnitario))}</p>
+            </div>
+            <div class="flex flex-col items-end ml-3 gap-1">
+              ${estadoBadge}
+            </div>
+          </div>
+          <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+            <div class="text-sm">
+              <span class="text-gray-500">Total: </span><span class="font-medium">$${fmt(totalDebe)}</span>
+              ${r.estado === 'seña' ? `<span class="text-orange-600 ml-2">Adeuda: $${fmt(resta)}</span>` : ''}
+              ${r.estado === 'pendiente' ? `<span class="text-red-600 ml-2">Cobrar: $${fmt(totalDebe)}</span>` : ''}
+              ${r.metodoPago ? `<span class="text-gray-400 ml-2">· ${r.metodoPago}</span>` : ''}
+            </div>
+            <div class="flex gap-2">
+              <button onclick="App.openEdit('${r.id}')" class="text-blue-500 text-xs hover:text-blue-700 font-medium">Editar</button>
+              <button onclick="App.deleteReg('${r.id}', '${esc(r.nombre)}')" class="text-red-400 text-xs hover:text-red-600 font-medium">Borrar</button>
+            </div>
+          </div>
+          ${r.notas ? `<p class="text-xs text-gray-400 mt-1 italic">${esc(r.notas)}</p>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  // ============================================================
+  // RESUMEN
+  // ============================================================
+  function renderResumen() {
+    const regs = state.registrations;
+
+    const totalPersonas = regs.length;
+    const totalTarjetas = regs.reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
+    const pagados  = regs.filter(r => r.estado === 'pagado');
+    const señas    = regs.filter(r => r.estado === 'seña');
+    const pendientes = regs.filter(r => r.estado === 'pendiente');
+
+    const tarjetasPagadas   = pagados.reduce((s, r)    => s + Number(r.cantidad), 0);
+    const tarjetasSena      = señas.reduce((s, r)      => s + Number(r.cantidad), 0);
+    const tarjetasPendientes = pendientes.reduce((s, r) => s + Number(r.cantidad), 0);
+
+    const totalCobrado   = regs.reduce((s, r) => s + Number(r.montoPagado || 0), 0);
+    const totalEsperado  = regs.reduce((s, r) => s + Number(r.totalDebe   || 0), 0);
+    const totalPorCobrar = totalEsperado - totalCobrado;
+
+    setText('stat-total-tarjetas', totalTarjetas);
+    setText('stat-total-personas', totalPersonas);
+    setText('stat-pagado',   tarjetasPagadas);
+    setText('stat-seña',     tarjetasSena);
+    setText('stat-pendiente',tarjetasPendientes);
+    setText('stat-cobrado',   '$' + fmt(totalCobrado));
+    setText('stat-por-cobrar','$' + fmt(totalPorCobrar));
+    setText('stat-esperado',  '$' + fmt(totalEsperado));
+
+    // Por tipo
+    const tipos = {};
+    regs.forEach(r => {
+      const t = r.tipoPrecio || 'Sin tipo';
+      if (!tipos[t]) tipos[t] = { cantidad: 0, total: 0 };
+      tipos[t].cantidad += Number(r.cantidad) || 0;
+      tipos[t].total    += Number(r.totalDebe) || 0;
+    });
+
+    document.getElementById('stat-por-tipo').innerHTML =
+      Object.entries(tipos).length === 0
+        ? '<p class="px-4 py-3 text-sm text-gray-400">Sin datos</p>'
+        : Object.entries(tipos).map(([tipo, data]) =>
+            `<div class="flex justify-between px-4 py-3 text-sm">
+              <span class="text-gray-600">${esc(tipo)}</span>
+              <span class="text-gray-800 font-medium">${data.cantidad} tarjeta${data.cantidad !== 1 ? 's' : ''} — $${fmt(data.total)}</span>
+            </div>`
+          ).join('');
+  }
+
+  // ============================================================
+  // EDITAR / ELIMINAR
+  // ============================================================
+  function openEdit(id) {
+    const reg = state.registrations.find(r => r.id === id);
+    if (!reg) return;
+
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-estado').value = reg.estado;
+    document.getElementById('edit-montoPagado').value = reg.montoPagado || 0;
+    document.getElementById('edit-metodoPago').value = reg.metodoPago || '';
+    document.getElementById('edit-notas').value = reg.notas || '';
+
+    onEditEstadoChange();
+    show('editModal');
+  }
+
+  function onEditEstadoChange() {
+    const estado = document.getElementById('edit-estado').value;
+    const box = document.getElementById('edit-montoPagadoBox');
+    if (estado === 'seña') { box.classList.remove('hidden'); }
+    else { box.classList.add('hidden'); }
+  }
+
+  async function saveEdit() {
+    const id = document.getElementById('edit-id').value;
+    const estado = document.getElementById('edit-estado').value;
+    const reg = state.registrations.find(r => r.id === id);
+    if (!reg) return;
+
+    const totalDebe = Number(reg.totalDebe) || 0;
+    let montoPagado = 0;
+    if (estado === 'pagado') montoPagado = totalDebe;
+    else if (estado === 'seña') montoPagado = parseFloat(document.getElementById('edit-montoPagado').value) || 0;
+
+    const fields = {
+      estado,
+      montoPagado,
+      metodoPago: document.getElementById('edit-metodoPago').value,
+      notas: document.getElementById('edit-notas').value.trim()
+    };
+
+    showLoading(true);
+    try {
+      const r = await api('updateRegistration', { id, fields });
+      if (r.success) {
+        toast('✅ Registro actualizado');
+        closeModal();
+        await loadRegistrations();
+      } else {
+        toast('❌ Error: ' + (r.error || 'desconocido'), 'error');
+      }
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  async function deleteReg(id, nombre) {
+    if (!confirm(`¿Borrar el registro de "${nombre}"? Esta acción no se puede deshacer.`)) return;
+
+    showLoading(true);
+    try {
+      const r = await api('deleteRegistration', { id });
+      if (r.success) {
+        toast('🗑️ Registro eliminado');
+        await loadRegistrations();
+      } else {
+        toast('❌ Error: ' + (r.error || 'desconocido'), 'error');
+      }
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function closeModal() { hide('editModal'); }
+
+  // ============================================================
+  // EXPORTAR CSV
+  // ============================================================
+  function exportCSV() {
+    const regs = state.filteredRegs.length > 0 ? state.filteredRegs : state.registrations;
+    if (regs.length === 0) { toast('Sin datos para exportar.', 'error'); return; }
+
+    const headers = ['Nombre', 'Cantidad', 'Tipo', 'Precio Unitario', 'Total', 'Pagado', 'Estado', 'Método', 'Notas', 'Fecha'];
+    const rows = regs.map(r => [
+      r.nombre,
+      r.cantidad,
+      r.tipoPrecio,
+      r.precioUnitario,
+      r.totalDebe,
+      r.montoPagado,
+      r.estado,
+      r.metodoPago,
+      r.notas,
+      r.timestamp ? new Date(r.timestamp).toLocaleDateString('es-AR') : ''
+    ].map(v => `"${String(v || '').replace(/"/g, '""')}"`));
+
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    const eventName = (state.config.eventName || 'tarjetas').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.download = `${eventName}_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+    toast('📁 CSV descargado');
+  }
+
+  // ============================================================
+  // REFRESH
+  // ============================================================
+  async function refresh() {
+    await loadAll();
+    toast('↻ Datos actualizados');
+  }
+
+  // ============================================================
+  // TABS
+  // ============================================================
+  function showTab(tabId) {
+    state.currentTab = tabId;
+    document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
+    document.getElementById(tabId).classList.remove('hidden');
+
+    document.querySelectorAll('.tabBtn').forEach(btn => {
+      if (btn.dataset.tab === tabId) {
+        btn.classList.add('border-b-2', 'border-blue-600', 'text-blue-600', 'font-semibold');
+        btn.classList.remove('text-gray-500');
+      } else {
+        btn.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600', 'font-semibold');
+        btn.classList.add('text-gray-500');
+      }
+    });
+
+    // Refrescar vistas al cambiar tab
+    if (tabId === 'tab-listado') filterList();
+    if (tabId === 'tab-resumen') renderResumen();
+    if (tabId === 'tab-config') renderConfigForm();
+  }
+
+  // ============================================================
+  // UTILIDADES UI
+  // ============================================================
+  let toastTimer;
+  function toast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full text-white text-sm font-medium shadow-lg z-50 no-print ${type === 'error' ? 'bg-red-600' : 'bg-gray-800'}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.add('hidden'), 3000);
+  }
+
+  function showLoading(val) {
+    document.getElementById('loadingOverlay').classList.toggle('hidden', !val);
+  }
+
+  function show(id) { document.getElementById(id).classList.remove('hidden'); }
+  function hide(id) { document.getElementById(id).classList.add('hidden'); }
+  function setText(id, val) { document.getElementById(id).textContent = val; }
+
+  function getRadioVal(name) {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : '';
+  }
+
+  function fmt(n) {
+    return Number(n || 0).toLocaleString('es-AR');
+  }
+
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  // Exponer para los onclick en HTML
+  return {
+    init, saveSetup, saveConfig, saveApiUrl, refresh,
+    showTab, addPriceType, removePriceType, updatePriceType,
+    onTipoChange, changeQty, calcTotal, onEstadoChange, calcDeuda,
+    submitRegistro, filterList,
+    openEdit, onEditEstadoChange, saveEdit, deleteReg, closeModal,
+    exportCSV
+  };
+})();
+
+// Arrancar
+window.addEventListener('DOMContentLoaded', App.init);
+</script>
+</body>
+</html>
