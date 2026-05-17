@@ -6,19 +6,16 @@
   <title>Tarjetas · Club Deportivo Mitre</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    [x-cloak] { display: none; }
-    .tab-active { @apply border-b-2 border-blue-600 text-blue-600 font-semibold; }
-
-    /* Badge colores */
-    .badge-pagado   { background:#d1fae5; color:#065f46; }
-    .badge-seña     { background:#fef3c7; color:#92400e; }
-    .badge-pendiente{ background:#fee2e2; color:#991b1b; }
+    .badge-pagado    { background:#d1fae5; color:#065f46; }
+    .badge-seña      { background:#fef3c7; color:#92400e; }
+    .badge-pendiente { background:#fee2e2; color:#991b1b; }
 
     @media print {
       .no-print { display: none !important; }
-      body { font-size: 12px; }
+      body { font-size: 12px; background: white; }
       table { border-collapse: collapse; width: 100%; }
-      th, td { border: 1px solid #ccc; padding: 4px 8px; }
+      th, td { border: 1px solid #ccc; padding: 5px 10px; text-align: left; }
+      th { background: #f3f4f6; }
     }
   </style>
 </head>
@@ -30,7 +27,7 @@
     <div class="text-center mb-8">
       <div class="text-4xl mb-2">🎭</div>
       <h1 class="text-2xl font-bold text-gray-800">Club Deportivo Mitre</h1>
-      <p class="text-gray-500 mt-1">Gestión de Tarjetas para Peñas</p>
+      <p class="text-gray-500 mt-1">Gestión de Tarjetas para Eventos</p>
     </div>
     <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200">
       <h2 class="font-semibold text-gray-700 mb-4">Configuración inicial</h2>
@@ -53,18 +50,19 @@
   <!-- Header -->
   <header class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40 no-print">
     <div>
-      <h1 class="font-bold text-gray-800 text-lg" id="headerEventName">Club Deportivo Mitre</h1>
+      <h1 class="font-bold text-gray-800 text-lg leading-tight" id="headerEventName">Club Deportivo Mitre</h1>
       <p class="text-xs text-gray-400" id="headerEventDate"></p>
     </div>
-    <button onclick="App.refresh()" title="Actualizar" class="text-gray-400 hover:text-blue-600 transition text-xl">↻</button>
+    <button onclick="App.refresh()" title="Actualizar" class="text-gray-400 hover:text-blue-600 transition text-xl px-2">↻</button>
   </header>
 
   <!-- Tabs -->
-  <nav class="bg-white border-b border-gray-200 flex no-print" id="tabNav">
-    <button class="flex-1 py-3 text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-registrar" onclick="App.showTab('tab-registrar')">✏️ Registrar</button>
-    <button class="flex-1 py-3 text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-listado"   onclick="App.showTab('tab-listado')">📋 Listado</button>
-    <button class="flex-1 py-3 text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-resumen"   onclick="App.showTab('tab-resumen')">📊 Resumen</button>
-    <button class="flex-1 py-3 text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-config"    onclick="App.showTab('tab-config')">⚙️ Config</button>
+  <nav class="bg-white border-b border-gray-200 flex overflow-x-auto no-print" id="tabNav">
+    <button class="flex-1 min-w-max py-3 px-2 text-xs sm:text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-registrar"   onclick="App.showTab('tab-registrar')">✏️ Registrar</button>
+    <button class="flex-1 min-w-max py-3 px-2 text-xs sm:text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-listado"    onclick="App.showTab('tab-listado')">📋 Listado</button>
+    <button class="flex-1 min-w-max py-3 px-2 text-xs sm:text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-movimientos" onclick="App.showTab('tab-movimientos')">💳 Movimientos</button>
+    <button class="flex-1 min-w-max py-3 px-2 text-xs sm:text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-resumen"    onclick="App.showTab('tab-resumen')">📊 Resumen</button>
+    <button class="flex-1 min-w-max py-3 px-2 text-xs sm:text-sm text-gray-500 hover:text-blue-600 transition tabBtn" data-tab="tab-config"     onclick="App.showTab('tab-config')">⚙️ Config</button>
   </nav>
 
   <!-- Toast -->
@@ -82,15 +80,13 @@
     <h2 class="font-semibold text-gray-700 mb-4">Nueva tarjeta</h2>
 
     <form id="formRegistro" class="space-y-4" onsubmit="return false;">
-      <!-- Nombre -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo <span class="text-red-500">*</span></label>
-        <input id="f-nombre" type="text" required
+        <input id="f-nombre" type="text" required autocomplete="off"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="Ej: Juan Pérez" />
       </div>
 
-      <!-- Tipo de precio -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de tarjeta <span class="text-red-500">*</span></label>
         <select id="f-tipoPrecio" required onchange="App.onTipoChange()"
@@ -100,7 +96,6 @@
         <p id="f-precioLabel" class="text-xs text-gray-400 mt-1"></p>
       </div>
 
-      <!-- Cantidad -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad <span class="text-red-500">*</span></label>
         <div class="flex items-center gap-3">
@@ -114,13 +109,11 @@
         </div>
       </div>
 
-      <!-- Total calculado -->
       <div id="totalBox" class="hidden bg-blue-50 rounded-lg p-3 text-center">
         <p class="text-xs text-blue-600 uppercase tracking-wide mb-1">Total a cobrar</p>
         <p id="totalLabel" class="text-2xl font-bold text-blue-700"></p>
       </div>
 
-      <!-- Estado de pago -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">Estado del pago <span class="text-red-500">*</span></label>
         <div class="grid grid-cols-3 gap-2">
@@ -145,7 +138,6 @@
         </div>
       </div>
 
-      <!-- Monto seña (condicional) -->
       <div id="señaBox" class="hidden">
         <label class="block text-sm font-medium text-gray-700 mb-1">Monto de la seña $</label>
         <input id="f-montoPagado" type="number" min="0" value="0" onchange="App.calcDeuda()"
@@ -153,7 +145,6 @@
         <p id="deudaLabel" class="text-xs text-orange-600 mt-1 font-medium"></p>
       </div>
 
-      <!-- Método de pago -->
       <div id="metodoPagoBox" class="hidden">
         <label class="block text-sm font-medium text-gray-700 mb-2">Método de pago</label>
         <div class="grid grid-cols-2 gap-2">
@@ -172,7 +163,6 @@
         </div>
       </div>
 
-      <!-- Notas -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Notas (opcional)</label>
         <input id="f-notas" type="text"
@@ -180,8 +170,7 @@
           placeholder="Ej: familiar del jugador #10" />
       </div>
 
-      <!-- Submit -->
-      <button id="btnSubmitReg" type="button" onclick="App.submitRegistro()"
+      <button type="button" onclick="App.submitRegistro()"
         class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold text-lg hover:bg-blue-700 transition shadow-sm">
         Guardar registro
       </button>
@@ -192,7 +181,7 @@
   <!-- TAB: LISTADO                                                -->
   <!-- =========================================================== -->
   <section id="tab-listado" class="tab-content hidden p-4">
-    <div class="flex gap-2 mb-4 no-print">
+    <div class="flex gap-2 mb-3 no-print">
       <input id="searchInput" type="text" placeholder="Buscar por nombre..."
         oninput="App.filterList()"
         class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -205,7 +194,6 @@
       </select>
     </div>
 
-    <!-- Acciones de exportación -->
     <div class="flex gap-2 mb-4 no-print">
       <button onclick="App.exportCSV()" class="flex-1 border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 transition">
         ⬇️ Exportar CSV
@@ -215,7 +203,32 @@
       </button>
     </div>
 
-    <div id="listContainer">
+    <!-- Tabla de impresión (oculta en pantalla) -->
+    <div class="hidden print:block">
+      <h2 id="print-title" class="text-lg font-bold mb-1"></h2>
+      <p id="print-date" class="text-sm text-gray-500 mb-3"></p>
+      <table id="printTable">
+        <thead><tr>
+          <th>Nombre</th><th>Tipo</th><th>Cant.</th><th>Pagado</th><th>Debe</th><th>Total</th>
+        </tr></thead>
+        <tbody id="printTableBody"></tbody>
+      </table>
+    </div>
+
+    <div id="listContainer" class="print:hidden">
+      <!-- Se renderiza dinámicamente -->
+    </div>
+  </section>
+
+  <!-- =========================================================== -->
+  <!-- TAB: MOVIMIENTOS                                            -->
+  <!-- =========================================================== -->
+  <section id="tab-movimientos" class="tab-content hidden p-4">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-semibold text-gray-700">Movimientos de cobro</h2>
+      <span id="mov-total-badge" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium"></span>
+    </div>
+    <div id="movContainer">
       <!-- Se renderiza dinámicamente -->
     </div>
   </section>
@@ -224,8 +237,7 @@
   <!-- TAB: RESUMEN                                                -->
   <!-- =========================================================== -->
   <section id="tab-resumen" class="tab-content hidden p-4">
-    <!-- Stats cards -->
-    <div class="grid grid-cols-2 gap-3 mb-6">
+    <div class="grid grid-cols-2 gap-3 mb-5">
       <div class="bg-white rounded-xl p-4 border border-gray-200 text-center">
         <p class="text-3xl font-bold text-gray-800" id="stat-total-tarjetas">—</p>
         <p class="text-xs text-gray-500 mt-1">Total tarjetas</p>
@@ -248,7 +260,6 @@
       </div>
     </div>
 
-    <!-- Montos -->
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
       <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">💰 Movimiento de dinero</div>
       <div class="divide-y divide-gray-100">
@@ -267,12 +278,9 @@
       </div>
     </div>
 
-    <!-- Por tipo de precio -->
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">📊 Por tipo de tarjeta</div>
-      <div id="stat-por-tipo" class="divide-y divide-gray-100">
-        <!-- Dinámico -->
-      </div>
+      <div id="stat-por-tipo" class="divide-y divide-gray-100"></div>
     </div>
   </section>
 
@@ -281,141 +289,201 @@
   <!-- =========================================================== -->
   <section id="tab-config" class="tab-content hidden p-4">
     <h2 class="font-semibold text-gray-700 mb-4">Configuración del evento</h2>
-
     <div class="space-y-4">
-      <!-- Nombre del evento -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del evento</label>
         <input id="cfg-eventName" type="text"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Ej: Peña Folklórica - Enero 2025" />
+          placeholder="Ej: Peña Folklórica – Enero 2025" />
       </div>
-
-      <!-- Fecha del evento -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Fecha del evento</label>
         <input id="cfg-eventDate" type="date"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
-
-      <!-- Tipos de precio -->
       <div>
         <div class="flex items-center justify-between mb-2">
           <label class="text-sm font-medium text-gray-700">Tipos de tarjeta y precios</label>
-          <button onclick="App.addPriceType()"
-            class="text-blue-600 text-sm font-medium hover:text-blue-800">+ Agregar</button>
+          <button onclick="App.addPriceType()" class="text-blue-600 text-sm font-medium hover:text-blue-800">+ Agregar</button>
         </div>
-        <div id="priceTypesList" class="space-y-2">
-          <!-- Dinámico -->
-        </div>
-        <p class="text-xs text-gray-400 mt-2">Definí un tipo por cada precio diferente (General, Especial, Menor, etc.)</p>
+        <div id="priceTypesList" class="space-y-2"></div>
+        <p class="text-xs text-gray-400 mt-2">Un tipo por cada precio diferente (General, Especial, Menor, etc.)</p>
       </div>
-
       <button onclick="App.saveConfig()"
         class="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
         Guardar configuración
       </button>
-
-      <!-- Separador -->
       <hr class="border-gray-200" />
-
-      <!-- URL del script -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">URL del Web App</label>
         <input id="cfg-apiUrl" type="url"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="https://script.google.com/macros/s/..." />
-        <button onclick="App.saveApiUrl()" class="mt-2 text-blue-600 text-sm font-medium hover:text-blue-800">
-          Actualizar URL
-        </button>
+        <button onclick="App.saveApiUrl()" class="mt-2 text-blue-600 text-sm font-medium hover:text-blue-800">Actualizar URL</button>
       </div>
     </div>
   </section>
 
 </div><!-- /mainApp -->
 
-<!-- ===================== MODAL EDITAR ===================== -->
-<div id="editModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4 no-print">
-  <div class="bg-white rounded-2xl w-full max-w-md p-5 space-y-4">
-    <div class="flex items-center justify-between">
-      <h3 class="font-semibold text-gray-800">Editar registro</h3>
-      <button onclick="App.closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
-    </div>
+<!-- ===================== MODAL: REGISTRAR PAGO ===================== -->
+<div id="pagoModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4 no-print">
+  <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div class="p-5 space-y-4">
 
-    <input type="hidden" id="edit-id" />
+      <!-- Header modal -->
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-gray-800">Registrar Pago</h3>
+        <button onclick="App.closePagoModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Estado del pago</label>
-      <select id="edit-estado" onchange="App.onEditEstadoChange()"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option value="pagado">✅ Pagado</option>
-        <option value="seña">💵 Con seña</option>
-        <option value="pendiente">⏳ Pendiente</option>
-      </select>
-    </div>
+      <!-- Info del registro -->
+      <div id="pago-info" class="bg-gray-50 rounded-xl p-4 text-sm space-y-3">
+        <!-- se rellena dinámicamente -->
+      </div>
 
-    <div id="edit-montoPagadoBox" class="hidden">
-      <label class="block text-sm font-medium text-gray-700 mb-1">Monto pagado $</label>
-      <input id="edit-montoPagado" type="number" min="0"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-    </div>
+      <!-- Tipo de pago: completo o parcial -->
+      <div>
+        <p class="text-sm font-medium text-gray-700 mb-2">Tipo de pago</p>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="pago-tipo" value="completo" class="peer hidden" onchange="App.onPagoTipoChange()" />
+            <div class="border-2 border-gray-200 rounded-xl p-3 text-center text-sm peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-800 transition">
+              ✅<br/><span class="font-medium">Pago completo</span>
+              <p id="pago-completo-monto" class="text-xs mt-0.5 font-bold"></p>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="pago-tipo" value="parcial" class="peer hidden" onchange="App.onPagoTipoChange()" />
+            <div class="border-2 border-gray-200 rounded-xl p-3 text-center text-sm peer-checked:border-yellow-500 peer-checked:bg-yellow-50 peer-checked:text-yellow-800 transition">
+              💵<br/><span class="font-medium">Pago parcial</span>
+            </div>
+          </label>
+        </div>
+      </div>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Método de pago</label>
-      <select id="edit-metodoPago"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option value="">— Sin especificar —</option>
-        <option value="efectivo">💰 Efectivo</option>
-        <option value="transferencia">📲 Transferencia</option>
-      </select>
-    </div>
+      <!-- Detalle pago parcial -->
+      <div id="pago-parcial-box" class="hidden space-y-3">
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Notas</label>
-      <input id="edit-notas" type="text"
-        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-    </div>
+        <!-- Multi-ticket: elegir tarjetas o seña -->
+        <div id="pago-multi-opts" class="hidden space-y-3">
+          <p class="text-sm font-medium text-gray-700">¿Cómo pagá?</p>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="cursor-pointer">
+              <input type="radio" name="pago-parcial-tipo" value="tarjetas" class="peer hidden" onchange="App.onParcialTipoChange()" />
+              <div class="border-2 border-gray-200 rounded-xl p-3 text-center text-sm peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-800 transition">
+                🎟️<br/><span class="font-medium">Tarjetas</span>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="pago-parcial-tipo" value="seña" class="peer hidden" onchange="App.onParcialTipoChange()" />
+              <div class="border-2 border-gray-200 rounded-xl p-3 text-center text-sm peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-800 transition">
+                💵<br/><span class="font-medium">Seña</span>
+              </div>
+            </label>
+          </div>
 
-    <div class="flex gap-3">
-      <button onclick="App.saveEdit()"
-        class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
-        Guardar
-      </button>
-      <button onclick="App.closeModal()"
-        class="flex-1 border border-gray-300 text-gray-600 py-2 rounded-lg hover:bg-gray-50 transition">
-        Cancelar
-      </button>
+          <!-- Selector cantidad tarjetas -->
+          <div id="pago-tarjetas-box" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad de tarjetas a pagar</label>
+            <select id="pago-cant-tarjetas" onchange="App.calcPagoPreview()"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            </select>
+          </div>
+
+          <!-- Input seña libre (multi) -->
+          <div id="pago-seña-multi-box" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Monto de la seña $</label>
+            <input id="pago-seña-multi" type="number" min="1" placeholder="0"
+              oninput="App.calcPagoPreview()"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+
+        <!-- Single-ticket: solo seña -->
+        <div id="pago-single-opts" class="hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Monto de la seña $</label>
+          <input id="pago-seña-single" type="number" min="1" placeholder="0"
+            oninput="App.calcPagoPreview()"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+      </div>
+
+      <!-- Preview del monto a cobrar -->
+      <div id="pago-preview-box" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+        <p class="text-xs text-blue-600 uppercase tracking-wide mb-1">Monto a cobrar ahora</p>
+        <p id="pago-preview-monto" class="text-2xl font-bold text-blue-700"></p>
+        <p id="pago-preview-detalle" class="text-xs text-blue-500 mt-0.5"></p>
+      </div>
+
+      <!-- Método de pago -->
+      <div id="pago-metodo-box" class="hidden">
+        <p class="text-sm font-medium text-gray-700 mb-2">Método de pago</p>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="pago-metodo" value="efectivo" class="peer hidden" />
+            <div class="border-2 border-gray-200 rounded-xl p-3 text-center text-sm peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition">
+              💰 Efectivo
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="pago-metodo" value="transferencia" class="peer hidden" />
+            <div class="border-2 border-gray-200 rounded-xl p-3 text-center text-sm peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition">
+              📲 Transferencia
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Notas -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Notas (opcional)</label>
+        <input id="pago-notas" type="text" autocomplete="off"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Opcional..." />
+      </div>
+
+      <!-- Botones -->
+      <div class="flex gap-3 pt-1">
+        <button onclick="App.savePago()"
+          class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+          Guardar pago
+        </button>
+        <button onclick="App.closePagoModal()"
+          class="flex-1 border border-gray-300 text-gray-600 py-3 rounded-xl hover:bg-gray-50 transition">
+          Cancelar
+        </button>
+      </div>
+
     </div>
   </div>
 </div>
 
 <script>
 // ============================================================
-// ESTADO GLOBAL
+// APP
 // ============================================================
 const App = (() => {
+
   const state = {
     apiUrl: '',
     config: { eventName: '', eventDate: '', priceTypes: [] },
     registrations: [],
-    filteredRegs: [],
-    currentTab: 'tab-registrar',
+    filteredRegs:  [],
+    movimientos:   [],
+    pagoReg:       null,   // registro actualmente en el modal de pago
   };
 
-  // ============================================================
-  // INICIALIZACIÓN
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
+  // INIT
+  // ──────────────────────────────────────────────────────────
   async function init() {
     state.apiUrl = localStorage.getItem('cdm_api_url') || '';
-
     if (!state.apiUrl) {
-      show('setupScreen');
-      hide('mainApp');
+      show('setupScreen'); hide('mainApp');
       return;
     }
-
-    hide('setupScreen');
-    show('mainApp');
+    hide('setupScreen'); show('mainApp');
     showTab('tab-registrar');
     await loadAll();
   }
@@ -423,15 +491,15 @@ const App = (() => {
   async function loadAll() {
     showLoading(true);
     try {
-      await Promise.all([loadConfig(), loadRegistrations()]);
+      await Promise.all([loadConfig(), loadRegistrations(), loadMovimientos()]);
     } finally {
       showLoading(false);
     }
   }
 
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
   // SETUP
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
   function saveSetup() {
     const url = document.getElementById('setupUrl').value.trim();
     if (!url || !url.startsWith('https://script.google.com')) {
@@ -440,28 +508,26 @@ const App = (() => {
     }
     localStorage.setItem('cdm_api_url', url);
     state.apiUrl = url;
-    hide('setupScreen');
-    show('mainApp');
+    hide('setupScreen'); show('mainApp');
     showTab('tab-config');
     toast('✅ URL guardada. Configurá el evento.');
   }
 
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
   // API
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
   async function api(action, data = null) {
     const url = new URL(state.apiUrl);
     url.searchParams.set('action', action);
     if (data !== null) url.searchParams.set('data', JSON.stringify(data));
-
     const res = await fetch(url.toString(), { redirect: 'follow' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     return res.json();
   }
 
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
   // CONFIG
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
   async function loadConfig() {
     try {
       const r = await api('getConfig');
@@ -471,36 +537,32 @@ const App = (() => {
         populatePriceTypeSelect();
         updateHeader();
       }
-    } catch (e) {
-      toast('⚠️ Error al cargar configuración', 'error');
-    }
+    } catch (e) { toast('⚠️ Error al cargar configuración', 'error'); }
   }
 
   function renderConfigForm() {
     document.getElementById('cfg-eventName').value = state.config.eventName || '';
     document.getElementById('cfg-eventDate').value = state.config.eventDate || '';
-    document.getElementById('cfg-apiUrl').value = state.apiUrl;
+    document.getElementById('cfg-apiUrl').value    = state.apiUrl;
     renderPriceTypesList();
   }
 
   function renderPriceTypesList() {
     const container = document.getElementById('priceTypesList');
     const types = state.config.priceTypes || [];
-
     container.innerHTML = types.length === 0
-      ? '<p class="text-sm text-gray-400 italic">Sin tipos de tarjeta definidos.</p>'
+      ? '<p class="text-sm text-gray-400 italic">Sin tipos definidos.</p>'
       : types.map((t, i) => `
           <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
-            <input type="text" value="${esc(t.name)}" placeholder="Nombre (ej: General)"
-              oninput="App.updatePriceType(${i}, 'name', this.value)"
+            <input type="text" value="${esc(t.name)}" placeholder="Nombre"
+              oninput="App.updatePriceType(${i},'name',this.value)"
               class="flex-1 bg-transparent text-sm border-b border-gray-300 focus:outline-none focus:border-blue-500" />
             <span class="text-gray-400 text-sm">$</span>
             <input type="number" value="${t.amount}" placeholder="0" min="0"
-              oninput="App.updatePriceType(${i}, 'amount', parseFloat(this.value)||0)"
+              oninput="App.updatePriceType(${i},'amount',parseFloat(this.value)||0)"
               class="w-24 bg-transparent text-sm border-b border-gray-300 text-right focus:outline-none focus:border-blue-500" />
-            <button onclick="App.removePriceType(${i})" class="text-red-400 hover:text-red-600 font-bold text-lg leading-none">×</button>
-          </div>`
-      ).join('');
+            <button onclick="App.removePriceType(${i})" class="text-red-400 hover:text-red-600 font-bold text-lg">×</button>
+          </div>`).join('');
   }
 
   function addPriceType() {
@@ -508,25 +570,17 @@ const App = (() => {
     state.config.priceTypes.push({ name: '', amount: 0 });
     renderPriceTypesList();
   }
-
-  function removePriceType(i) {
-    state.config.priceTypes.splice(i, 1);
-    renderPriceTypesList();
-  }
-
-  function updatePriceType(i, field, val) {
-    state.config.priceTypes[i][field] = val;
-  }
+  function removePriceType(i) { state.config.priceTypes.splice(i, 1); renderPriceTypesList(); }
+  function updatePriceType(i, field, val) { state.config.priceTypes[i][field] = val; }
 
   async function saveConfig() {
     const cfg = {
-      eventName: document.getElementById('cfg-eventName').value.trim(),
-      eventDate: document.getElementById('cfg-eventDate').value,
+      eventName:  document.getElementById('cfg-eventName').value.trim(),
+      eventDate:  document.getElementById('cfg-eventDate').value,
       priceTypes: state.config.priceTypes || []
     };
     if (!cfg.eventName) { toast('Ingresá el nombre del evento.', 'error'); return; }
-    if (cfg.priceTypes.length === 0) { toast('Agregá al menos un tipo de tarjeta.', 'error'); return; }
-
+    if (!cfg.priceTypes.length) { toast('Agregá al menos un tipo.', 'error'); return; }
     showLoading(true);
     try {
       const r = await api('saveConfig', cfg);
@@ -535,12 +589,8 @@ const App = (() => {
         populatePriceTypeSelect();
         updateHeader();
         toast('✅ Configuración guardada');
-      } else {
-        toast('❌ Error: ' + (r.error || 'desconocido'), 'error');
-      }
-    } finally {
-      showLoading(false);
-    }
+      } else toast('❌ ' + (r.error || 'Error'), 'error');
+    } finally { showLoading(false); }
   }
 
   function saveApiUrl() {
@@ -552,7 +602,7 @@ const App = (() => {
   }
 
   function populatePriceTypeSelect() {
-    const sel = document.getElementById('f-tipoPrecio');
+    const sel   = document.getElementById('f-tipoPrecio');
     const types = state.config.priceTypes || [];
     sel.innerHTML = '<option value="">-- Seleccioná el tipo --</option>' +
       types.map(t => `<option value="${esc(t.name)}" data-amount="${t.amount}">${esc(t.name)} — $${fmt(t.amount)}</option>`).join('');
@@ -566,200 +616,182 @@ const App = (() => {
     document.getElementById('headerEventDate').textContent = d ? 'Evento: ' + formatDate(d) : '';
   }
 
-  // ============================================================
-  // REGISTROS
-  // ============================================================
-  async function loadRegistrations() {
-    try {
-      const r = await api('getRegistrations');
-      if (r.success) {
-        state.registrations = r.registrations;
-        state.filteredRegs = [...state.registrations];
-        renderList();
-        renderResumen();
-      }
-    } catch (e) {
-      toast('⚠️ Error al cargar registros', 'error');
-    }
-  }
-
-  // --- Formulario de registro ---
+  // ──────────────────────────────────────────────────────────
+  // REGISTROS — formulario
+  // ──────────────────────────────────────────────────────────
   function onTipoChange() {
     const sel = document.getElementById('f-tipoPrecio');
     const opt = sel.options[sel.selectedIndex];
-    const amount = parseFloat(opt.dataset.amount) || 0;
-    document.getElementById('f-precioLabel').textContent = amount ? `Precio unitario: $${fmt(amount)}` : '';
+    const amt = parseFloat(opt.dataset.amount) || 0;
+    document.getElementById('f-precioLabel').textContent = amt ? `Precio unitario: $${fmt(amt)}` : '';
     calcTotal();
   }
 
   function changeQty(delta) {
     const inp = document.getElementById('f-cantidad');
-    const newVal = Math.max(1, (parseInt(inp.value) || 1) + delta);
-    inp.value = newVal;
+    inp.value = Math.max(1, (parseInt(inp.value) || 1) + delta);
     calcTotal();
   }
 
   function calcTotal() {
     const sel = document.getElementById('f-tipoPrecio');
     const opt = sel.options[sel.selectedIndex];
-    const amount = parseFloat(opt?.dataset?.amount) || 0;
+    const amt = parseFloat(opt?.dataset?.amount) || 0;
     const qty = parseInt(document.getElementById('f-cantidad').value) || 1;
-    const total = amount * qty;
-
-    if (amount && qty) {
-      document.getElementById('totalBox').classList.remove('hidden');
-      document.getElementById('totalLabel').textContent = `$${fmt(total)}`;
+    if (amt && qty) {
+      show('totalBox');
+      document.getElementById('totalLabel').textContent = `$${fmt(amt * qty)}`;
       calcDeuda();
-    } else {
-      document.getElementById('totalBox').classList.add('hidden');
-    }
+    } else hide('totalBox');
   }
 
   function onEstadoChange() {
     const estado = getRadioVal('f-estado');
-    const señaBox = document.getElementById('señaBox');
-    const metodoPagoBox = document.getElementById('metodoPagoBox');
-
-    if (estado === 'seña') {
-      señaBox.classList.remove('hidden');
-      metodoPagoBox.classList.remove('hidden');
-      calcDeuda();
-    } else if (estado === 'pagado') {
-      señaBox.classList.add('hidden');
-      metodoPagoBox.classList.remove('hidden');
-    } else {
-      señaBox.classList.add('hidden');
-      metodoPagoBox.classList.add('hidden');
-    }
+    document.getElementById('señaBox').classList.toggle('hidden', estado !== 'seña');
+    document.getElementById('metodoPagoBox').classList.toggle('hidden', estado === 'pendiente');
+    if (estado === 'seña') calcDeuda();
   }
 
   function calcDeuda() {
-    const sel = document.getElementById('f-tipoPrecio');
-    const opt = sel.options[sel.selectedIndex];
-    const amount = parseFloat(opt?.dataset?.amount) || 0;
-    const qty = parseInt(document.getElementById('f-cantidad').value) || 1;
-    const total = amount * qty;
+    const sel   = document.getElementById('f-tipoPrecio');
+    const opt   = sel.options[sel.selectedIndex];
+    const amt   = parseFloat(opt?.dataset?.amount) || 0;
+    const qty   = parseInt(document.getElementById('f-cantidad').value) || 1;
+    const total = amt * qty;
     const pagado = parseFloat(document.getElementById('f-montoPagado').value) || 0;
-    const resta = total - pagado;
+    const resta  = total - pagado;
     document.getElementById('deudaLabel').textContent = resta > 0 ? `Adeuda: $${fmt(resta)}` : '';
   }
 
   async function submitRegistro() {
-    const nombre = document.getElementById('f-nombre').value.trim();
-    const tipoSel = document.getElementById('f-tipoPrecio');
-    const tipoPrecio = tipoSel.value;
+    const nombre        = document.getElementById('f-nombre').value.trim();
+    const tipoSel       = document.getElementById('f-tipoPrecio');
+    const tipoPrecio    = tipoSel.value;
     const precioUnitario = parseFloat(tipoSel.options[tipoSel.selectedIndex]?.dataset?.amount) || 0;
-    const cantidad = parseInt(document.getElementById('f-cantidad').value) || 1;
-    const estado = getRadioVal('f-estado');
-    const metodoPago = getRadioVal('f-metodo');
-    const notas = document.getElementById('f-notas').value.trim();
+    const cantidad      = parseInt(document.getElementById('f-cantidad').value) || 1;
+    const estado        = getRadioVal('f-estado');
+    const metodoPago    = getRadioVal('f-metodo');
+    const notas         = document.getElementById('f-notas').value.trim();
 
-    if (!nombre) { toast('Ingresá el nombre.', 'error'); return; }
-    if (!tipoPrecio) { toast('Seleccioná el tipo de tarjeta.', 'error'); return; }
-    if (!estado) { toast('Seleccioná el estado del pago.', 'error'); return; }
+    if (!nombre)     { toast('Ingresá el nombre.',          'error'); return; }
+    if (!tipoPrecio) { toast('Seleccioná tipo de tarjeta.', 'error'); return; }
+    if (!estado)     { toast('Seleccioná estado de pago.',  'error'); return; }
 
-    const totalDebe = precioUnitario * cantidad;
-    let montoPagado = 0;
-
-    if (estado === 'pagado') {
-      montoPagado = totalDebe;
-    } else if (estado === 'seña') {
-      montoPagado = parseFloat(document.getElementById('f-montoPagado').value) || 0;
-    }
-
-    const reg = { nombre, cantidad, tipoPrecio, precioUnitario, totalDebe, montoPagado, estado, metodoPago, notas };
+    const totalDebe   = precioUnitario * cantidad;
+    let   montoPagado = 0;
+    if (estado === 'pagado') montoPagado = totalDebe;
+    else if (estado === 'seña') montoPagado = parseFloat(document.getElementById('f-montoPagado').value) || 0;
 
     showLoading(true);
     try {
-      const r = await api('addRegistration', reg);
+      const r = await api('addRegistration', { nombre, cantidad, tipoPrecio, precioUnitario, totalDebe, montoPagado, estado, metodoPago, notas });
       if (r.success) {
+        // Si tiene pago inicial, registrar movimiento
+        if (montoPagado > 0) {
+          const tipoMov = estado === 'pagado' ? 'completo' : 'seña';
+          const cantTarj = estado === 'pagado' ? cantidad : 0;
+          await api('addMovimiento', {
+            registrationId: r.id, nombre, tipoPrecio,
+            cantidadTarjetas: cantTarj,
+            montoCobrado: montoPagado,
+            metodoPago, notas,
+            tipo: tipoMov
+          });
+        }
         toast('✅ Registro guardado');
         resetForm();
-        await loadRegistrations();
-      } else {
-        toast('❌ Error: ' + (r.error || 'desconocido'), 'error');
-      }
-    } finally {
-      showLoading(false);
-    }
+        await loadAll();
+      } else toast('❌ ' + (r.error || 'Error'), 'error');
+    } finally { showLoading(false); }
   }
 
   function resetForm() {
-    document.getElementById('f-nombre').value = '';
+    document.getElementById('f-nombre').value        = '';
     document.getElementById('f-tipoPrecio').selectedIndex = 0;
-    document.getElementById('f-cantidad').value = 1;
+    document.getElementById('f-cantidad').value      = 1;
+    document.getElementById('f-montoPagado').value   = 0;
+    document.getElementById('f-notas').value         = '';
     document.querySelectorAll('input[name="f-estado"]').forEach(r => r.checked = false);
     document.querySelectorAll('input[name="f-metodo"]').forEach(r => r.checked = false);
-    document.getElementById('f-notas').value = '';
-    document.getElementById('f-montoPagado').value = 0;
     document.getElementById('f-precioLabel').textContent = '';
-    document.getElementById('totalBox').classList.add('hidden');
-    document.getElementById('señaBox').classList.add('hidden');
-    document.getElementById('metodoPagoBox').classList.add('hidden');
-    document.getElementById('deudaLabel').textContent = '';
+    document.getElementById('deudaLabel').textContent    = '';
+    hide('totalBox'); hide('señaBox'); hide('metodoPagoBox');
   }
 
-  // ============================================================
-  // LISTADO
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
+  // REGISTROS — listado
+  // ──────────────────────────────────────────────────────────
+  async function loadRegistrations() {
+    try {
+      const r = await api('getRegistrations');
+      if (r.success) {
+        state.registrations = r.registrations;
+        state.filteredRegs  = [...state.registrations];
+        filterList();
+        renderResumen();
+      }
+    } catch (e) { toast('⚠️ Error al cargar registros', 'error'); }
+  }
+
   function filterList() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
+    const q   = document.getElementById('searchInput').value.toLowerCase();
     const est = document.getElementById('filterEstado').value;
-    state.filteredRegs = state.registrations.filter(r => {
-      const matchNombre = r.nombre.toLowerCase().includes(q);
-      const matchEstado = !est || r.estado === est;
-      return matchNombre && matchEstado;
-    });
+    state.filteredRegs = state.registrations.filter(r =>
+      r.nombre.toLowerCase().includes(q) && (!est || r.estado === est)
+    );
     renderList();
+    buildPrintTable();
   }
 
   function renderList() {
     const container = document.getElementById('listContainer');
     const regs = state.filteredRegs;
 
-    if (regs.length === 0) {
-      container.innerHTML = `<div class="text-center py-12 text-gray-400">
-        <div class="text-4xl mb-2">📋</div>
-        <p class="text-sm">Sin registros</p>
-      </div>`;
+    if (!regs.length) {
+      container.innerHTML = `<div class="text-center py-12 text-gray-400"><div class="text-4xl mb-2">📋</div><p class="text-sm">Sin registros</p></div>`;
       return;
     }
 
-    // Ordenar: pendientes primero, luego señas, luego pagados
     const order = { pendiente: 0, seña: 1, pagado: 2 };
     const sorted = [...regs].sort((a, b) => (order[a.estado] || 0) - (order[b.estado] || 0));
 
     container.innerHTML = sorted.map(r => {
-      const totalDebe = Number(r.totalDebe) || 0;
-      const montoPagado = Number(r.montoPagado) || 0;
-      const resta = totalDebe - montoPagado;
-      const estadoBadge = {
-        pagado:   '<span class="badge-pagado   px-2 py-0.5 rounded-full text-xs font-medium">✅ Pagado</span>',
-        seña:     '<span class="badge-seña     px-2 py-0.5 rounded-full text-xs font-medium">💵 Seña</span>',
-        pendiente:'<span class="badge-pendiente px-2 py-0.5 rounded-full text-xs font-medium">⏳ Pendiente</span>',
+      const totalDebe    = Number(r.totalDebe)    || 0;
+      const montoPagado  = Number(r.montoPagado)  || 0;
+      const debe         = totalDebe - montoPagado;
+      const badge = {
+        pagado:    '<span class="badge-pagado    px-2 py-0.5 rounded-full text-xs font-medium">✅ Pagado</span>',
+        seña:      '<span class="badge-seña      px-2 py-0.5 rounded-full text-xs font-medium">💵 Seña</span>',
+        pendiente: '<span class="badge-pendiente px-2 py-0.5 rounded-full text-xs font-medium">⏳ Pendiente</span>',
       }[r.estado] || '';
+
+      const debeInfo = r.estado !== 'pagado'
+        ? `<span class="text-red-600 font-medium ml-2">Cobrar: $${fmt(debe)}</span>`
+        : '';
+
+      const btnPago = r.estado !== 'pagado'
+        ? `<button onclick="App.openPago('${r.id}')" class="text-blue-600 text-xs font-semibold hover:text-blue-800">Registrar Pago</button>`
+        : `<span class="text-green-600 text-xs font-medium">✅ Pago completo</span>`;
 
       return `
         <div class="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-          <div class="flex items-start justify-between">
-            <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
               <p class="font-semibold text-gray-800 truncate">${esc(r.nombre)}</p>
-              <p class="text-xs text-gray-500 mt-0.5">${r.cantidad} × ${esc(r.tipoPrecio)} — $${fmt(Number(r.precioUnitario))}</p>
+              <p class="text-xs text-gray-500 mt-0.5">${r.cantidad} × ${esc(r.tipoPrecio)} — $${fmt(Number(r.precioUnitario))} c/u</p>
             </div>
-            <div class="flex flex-col items-end ml-3 gap-1">
-              ${estadoBadge}
-            </div>
+            ${badge}
           </div>
           <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
             <div class="text-sm">
-              <span class="text-gray-500">Total: </span><span class="font-medium">$${fmt(totalDebe)}</span>
-              ${r.estado === 'seña' ? `<span class="text-orange-600 ml-2">Adeuda: $${fmt(resta)}</span>` : ''}
-              ${r.estado === 'pendiente' ? `<span class="text-red-600 ml-2">Cobrar: $${fmt(totalDebe)}</span>` : ''}
+              <span class="text-gray-500">Total: $${fmt(totalDebe)}</span>
+              ${r.estado === 'seña' ? `<span class="text-orange-600 ml-2">Pagado: $${fmt(montoPagado)}</span>` : ''}
+              ${debeInfo}
               ${r.metodoPago ? `<span class="text-gray-400 ml-2">· ${r.metodoPago}</span>` : ''}
             </div>
-            <div class="flex gap-2">
-              <button onclick="App.openEdit('${r.id}')" class="text-blue-500 text-xs hover:text-blue-700 font-medium">Editar</button>
-              <button onclick="App.deleteReg('${r.id}', '${esc(r.nombre)}')" class="text-red-400 text-xs hover:text-red-600 font-medium">Borrar</button>
+            <div class="flex gap-3">
+              ${btnPago}
+              <button onclick="App.deleteReg('${r.id}')" class="text-red-400 text-xs hover:text-red-600">Borrar</button>
             </div>
           </div>
           ${r.notas ? `<p class="text-xs text-gray-400 mt-1 italic">${esc(r.notas)}</p>` : ''}
@@ -767,197 +799,461 @@ const App = (() => {
     }).join('');
   }
 
-  // ============================================================
+  // tabla para impresión
+  function buildPrintTable() {
+    document.getElementById('print-title').textContent = state.config.eventName || 'Club Deportivo Mitre';
+    document.getElementById('print-date').textContent  = state.config.eventDate ? 'Fecha: ' + formatDate(state.config.eventDate) : '';
+    const tbody = document.getElementById('printTableBody');
+    const regs  = state.filteredRegs;
+    tbody.innerHTML = regs.map(r => {
+      const totalDebe   = Number(r.totalDebe)   || 0;
+      const montoPagado = Number(r.montoPagado) || 0;
+      const debe        = totalDebe - montoPagado;
+      return `<tr>
+        <td>${esc(r.nombre)}</td>
+        <td>${esc(r.tipoPrecio)}</td>
+        <td style="text-align:center">${r.cantidad}</td>
+        <td style="text-align:right">$${fmt(montoPagado)}</td>
+        <td style="text-align:right">${debe > 0 ? '$' + fmt(debe) : '—'}</td>
+        <td style="text-align:right">$${fmt(totalDebe)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ──────────────────────────────────────────────────────────
+  // MODAL REGISTRAR PAGO
+  // ──────────────────────────────────────────────────────────
+  function openPago(id) {
+    const reg = state.registrations.find(r => r.id === id);
+    if (!reg) return;
+    if (reg.estado === 'pagado') { toast('Ya está completamente pago.'); return; }
+
+    state.pagoReg = reg;
+
+    const totalDebe      = Number(reg.totalDebe)      || 0;
+    const montoPagado    = Number(reg.montoPagado)     || 0;
+    const precioUnitario = Number(reg.precioUnitario)  || 0;
+    const cantidad       = Number(reg.cantidad)        || 1;
+    const remaining      = totalDebe - montoPagado;
+    // cuántas tarjetas completas quedan por pagar
+    const remainingTickets = precioUnitario > 0 ? Math.floor(remaining / precioUnitario) : 0;
+
+    // Info block
+    const tarjetasPagas = precioUnitario > 0 ? Math.floor(montoPagado / precioUnitario) : 0;
+    document.getElementById('pago-info').innerHTML = `
+      <p class="font-semibold text-gray-800 text-base">${esc(reg.nombre)}</p>
+      <p class="text-gray-500 text-xs mb-2">${cantidad} ${cantidad === 1 ? 'tarjeta' : 'tarjetas'} · ${esc(reg.tipoPrecio)} · $${fmt(precioUnitario)} c/u · Total: $${fmt(totalDebe)}</p>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-green-50 rounded-lg p-2 text-center">
+          <p class="text-xs text-green-600 font-medium">Pagado</p>
+          <p class="font-bold text-green-700 text-lg">$${fmt(montoPagado)}</p>
+          ${tarjetasPagas > 0 ? `<p class="text-xs text-green-600">${tarjetasPagas} tarjeta${tarjetasPagas !== 1 ? 's' : ''}</p>` : montoPagado > 0 ? '<p class="text-xs text-green-600">seña parcial</p>' : '<p class="text-xs text-gray-400">sin pagar</p>'}
+        </div>
+        <div class="bg-red-50 rounded-lg p-2 text-center">
+          <p class="text-xs text-red-600 font-medium">Debe</p>
+          <p class="font-bold text-red-600 text-lg">$${fmt(remaining)}</p>
+          ${remainingTickets > 0 ? `<p class="text-xs text-red-500">${remainingTickets} tarjeta${remainingTickets !== 1 ? 's' : ''}</p>` : '<p class="text-xs text-red-400">parcial</p>'}
+        </div>
+      </div>`;
+
+    // Monto pago completo
+    document.getElementById('pago-completo-monto').textContent = `$${fmt(remaining)}`;
+
+    // Reset radios
+    document.querySelectorAll('input[name="pago-tipo"]').forEach(r => r.checked = false);
+    document.querySelectorAll('input[name="pago-parcial-tipo"]').forEach(r => r.checked = false);
+    document.querySelectorAll('input[name="pago-metodo"]').forEach(r => r.checked = false);
+    document.getElementById('pago-notas').value = '';
+    document.getElementById('pago-seña-single').value = '';
+    document.getElementById('pago-seña-multi').value  = '';
+
+    hide('pago-parcial-box');
+    hide('pago-preview-box');
+    hide('pago-tarjetas-box');
+    hide('pago-seña-multi-box');
+    hide('pago-metodo-box');
+
+    // Configurar multi vs single
+    if (cantidad > 1) {
+      show('pago-multi-opts');
+      hide('pago-single-opts');
+      // Poblar selector de cantidad
+      const sel = document.getElementById('pago-cant-tarjetas');
+      const maxOpts = remainingTickets > 0 ? remainingTickets : 0;
+      sel.innerHTML = maxOpts > 0
+        ? Array.from({ length: maxOpts }, (_, k) => k + 1)
+            .map(n => `<option value="${n}">${n} tarjeta${n !== 1 ? 's' : ''} = $${fmt(n * precioUnitario)}</option>`)
+            .join('')
+        : '<option value="">Sin tarjetas completas disponibles</option>';
+    } else {
+      hide('pago-multi-opts');
+      show('pago-single-opts');
+    }
+
+    show('pagoModal');
+  }
+
+  function onPagoTipoChange() {
+    const tipo = getRadioVal('pago-tipo');
+    document.getElementById('pago-parcial-box').classList.toggle('hidden', tipo !== 'parcial');
+    // reset parcial selects
+    document.querySelectorAll('input[name="pago-parcial-tipo"]').forEach(r => r.checked = false);
+    hide('pago-tarjetas-box'); hide('pago-seña-multi-box');
+    calcPagoPreview();
+    show('pago-metodo-box');
+  }
+
+  function onParcialTipoChange() {
+    const sub = getRadioVal('pago-parcial-tipo');
+    document.getElementById('pago-tarjetas-box').classList.toggle('hidden', sub !== 'tarjetas');
+    document.getElementById('pago-seña-multi-box').classList.toggle('hidden', sub !== 'seña');
+    document.getElementById('pago-seña-multi').value = '';
+    calcPagoPreview();
+  }
+
+  function calcPagoPreview() {
+    const reg  = state.pagoReg;
+    if (!reg) return;
+
+    const tipo = getRadioVal('pago-tipo');
+    if (!tipo) { hide('pago-preview-box'); return; }
+
+    const totalDebe      = Number(reg.totalDebe)     || 0;
+    const montoPagado    = Number(reg.montoPagado)   || 0;
+    const precioUnitario = Number(reg.precioUnitario) || 0;
+    const cantidad       = Number(reg.cantidad)      || 1;
+    const remaining      = totalDebe - montoPagado;
+
+    let monto   = 0;
+    let detalle = '';
+
+    if (tipo === 'completo') {
+      monto   = remaining;
+      detalle = 'Cancela deuda total';
+    } else {
+      // parcial
+      if (cantidad > 1) {
+        const sub = getRadioVal('pago-parcial-tipo');
+        if (sub === 'tarjetas') {
+          const n = parseInt(document.getElementById('pago-cant-tarjetas').value) || 0;
+          monto   = n * precioUnitario;
+          detalle = n > 0 ? `${n} tarjeta${n !== 1 ? 's' : ''} × $${fmt(precioUnitario)}` : '';
+        } else if (sub === 'seña') {
+          monto   = parseFloat(document.getElementById('pago-seña-multi').value) || 0;
+          detalle = 'Seña';
+        }
+      } else {
+        monto   = parseFloat(document.getElementById('pago-seña-single').value) || 0;
+        detalle = 'Seña';
+      }
+    }
+
+    if (monto > 0) {
+      document.getElementById('pago-preview-monto').textContent  = `$${fmt(monto)}`;
+      document.getElementById('pago-preview-detalle').textContent = detalle;
+      show('pago-preview-box');
+      show('pago-metodo-box');
+    } else {
+      hide('pago-preview-box');
+    }
+  }
+
+  async function savePago() {
+    const reg = state.pagoReg;
+    if (!reg) return;
+
+    const tipo           = getRadioVal('pago-tipo');
+    const metodoPago     = getRadioVal('pago-metodo');
+    const notas          = document.getElementById('pago-notas').value.trim();
+    const totalDebe      = Number(reg.totalDebe)      || 0;
+    const montoPagadoPrev = Number(reg.montoPagado)   || 0;
+    const precioUnitario = Number(reg.precioUnitario) || 0;
+    const cantidad       = Number(reg.cantidad)       || 1;
+    const remaining      = totalDebe - montoPagadoPrev;
+
+    if (!tipo) { toast('Seleccioná tipo de pago.', 'error'); return; }
+
+    let montoCobrado    = 0;
+    let tipoMov         = 'pago';
+    let cantTarjetasMov = 0;
+
+    if (tipo === 'completo') {
+      montoCobrado    = remaining;
+      tipoMov         = 'completo';
+      cantTarjetasMov = precioUnitario > 0 ? Math.round(remaining / precioUnitario) : 0;
+    } else {
+      if (cantidad > 1) {
+        const sub = getRadioVal('pago-parcial-tipo');
+        if (!sub) { toast('Seleccioná cómo paga (tarjetas o seña).', 'error'); return; }
+        if (sub === 'tarjetas') {
+          const n = parseInt(document.getElementById('pago-cant-tarjetas').value) || 0;
+          if (!n) { toast('Seleccioná cantidad de tarjetas.', 'error'); return; }
+          montoCobrado    = n * precioUnitario;
+          tipoMov         = 'tarjetas';
+          cantTarjetasMov = n;
+        } else {
+          montoCobrado = parseFloat(document.getElementById('pago-seña-multi').value) || 0;
+          tipoMov      = 'seña';
+        }
+      } else {
+        montoCobrado = parseFloat(document.getElementById('pago-seña-single').value) || 0;
+        tipoMov      = 'seña';
+      }
+    }
+
+    if (montoCobrado <= 0) { toast('El monto debe ser mayor a 0.', 'error'); return; }
+    if (montoCobrado > remaining) { toast(`El monto no puede superar la deuda ($${fmt(remaining)}).`, 'error'); return; }
+
+    // Calcular nuevo estado
+    const nuevoMontoPagado = montoPagadoPrev + montoCobrado;
+    const nuevoEstado = nuevoMontoPagado >= totalDebe ? 'pagado'
+                      : nuevoMontoPagado > 0           ? 'seña'
+                      :                                  'pendiente';
+
+    showLoading(true);
+    try {
+      // 1. Actualizar registro
+      const updFields = { montoPagado: nuevoMontoPagado, estado: nuevoEstado };
+      if (metodoPago) updFields.metodoPago = metodoPago;
+      const r1 = await api('updateRegistration', { id: reg.id, fields: updFields });
+      if (!r1.success) { toast('❌ Error al actualizar registro', 'error'); return; }
+
+      // 2. Registrar movimiento
+      await api('addMovimiento', {
+        registrationId: reg.id,
+        nombre:          reg.nombre,
+        tipoPrecio:      reg.tipoPrecio,
+        cantidadTarjetas: cantTarjetasMov,
+        montoCobrado,
+        metodoPago:      metodoPago || '',
+        notas,
+        tipo:            tipoMov
+      });
+
+      toast('✅ Pago registrado');
+      closePagoModal();
+      await loadAll();
+    } finally { showLoading(false); }
+  }
+
+  function closePagoModal() { hide('pagoModal'); state.pagoReg = null; }
+
+  async function deleteReg(id) {
+    const reg = state.registrations.find(r => r.id === id);
+    const nombre = reg ? reg.nombre : 'este registro';
+    if (!confirm(`¿Borrar el registro de "${nombre}"? No se puede deshacer.`)) return;
+    showLoading(true);
+    try {
+      const r = await api('deleteRegistration', { id });
+      if (r.success) { toast('🗑️ Registro eliminado'); await loadAll(); }
+      else toast('❌ ' + (r.error || 'Error'), 'error');
+    } finally { showLoading(false); }
+  }
+
+  // ──────────────────────────────────────────────────────────
+  // MOVIMIENTOS
+  // ──────────────────────────────────────────────────────────
+  async function loadMovimientos() {
+    try {
+      const r = await api('getMovimientos');
+      if (r.success) {
+        state.movimientos = r.movimientos;
+        renderMovimientos();
+        updateMovBadge();
+      }
+    } catch (e) { /* silencioso */ }
+  }
+
+  function updateMovBadge() {
+    const badge = document.getElementById('mov-total-badge');
+    const total = state.movimientos.reduce((s, m) => s + (Number(m.montoCobrado) || 0), 0);
+    badge.textContent = state.movimientos.length
+      ? `${state.movimientos.length} cobros · $${fmt(total)} total`
+      : 'Sin movimientos';
+  }
+
+  function renderMovimientos() {
+    const container = document.getElementById('movContainer');
+    const movs = state.movimientos; // ya vienen ordenados más nuevo primero
+
+    if (!movs.length) {
+      container.innerHTML = `<div class="text-center py-12 text-gray-400"><div class="text-4xl mb-2">💳</div><p class="text-sm">Sin movimientos registrados</p></div>`;
+      return;
+    }
+
+    container.innerHTML = movs.map(m => {
+      const monto     = Number(m.montoCobrado) || 0;
+      const ts        = m.timestamp ? new Date(m.timestamp) : null;
+      const fechaStr  = ts ? ts.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' }) + ' ' +
+                             ts.toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' }) : '';
+
+      const tipoLabel = {
+        completo: '✅ Pago completo',
+        tarjetas: `🎟️ ${m.cantidadTarjetas} tarjeta${Number(m.cantidadTarjetas) !== 1 ? 's' : ''} pagada${Number(m.cantidadTarjetas) !== 1 ? 's' : ''}`,
+        seña:     '💵 Seña',
+      }[m.tipo] || '💰 Pago';
+
+      const tipoBg = {
+        completo: 'border-l-4 border-green-400',
+        tarjetas: 'border-l-4 border-blue-400',
+        seña:     'border-l-4 border-yellow-400',
+      }[m.tipo] || 'border-l-4 border-gray-300';
+
+      return `
+        <div class="bg-white rounded-xl ${tipoBg} shadow-sm mb-3 p-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="font-semibold text-gray-800">${esc(m.nombre)}</p>
+              <p class="text-xs text-gray-500">${esc(m.tipoPrecio)}</p>
+            </div>
+            <p class="font-bold text-gray-800 text-lg">$${fmt(monto)}</p>
+          </div>
+          <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+            <span class="text-sm text-gray-600">${tipoLabel}</span>
+            <span class="text-xs text-gray-400">${m.metodoPago ? m.metodoPago + ' · ' : ''}${fechaStr}</span>
+          </div>
+          ${m.notas ? `<p class="text-xs text-gray-400 mt-1 italic">${esc(m.notas)}</p>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  // ──────────────────────────────────────────────────────────
   // RESUMEN
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
   function renderResumen() {
     const regs = state.registrations;
 
-    const totalPersonas = regs.length;
-    const totalTarjetas = regs.reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
-    const pagados  = regs.filter(r => r.estado === 'pagado');
-    const señas    = regs.filter(r => r.estado === 'seña');
-    const pendientes = regs.filter(r => r.estado === 'pendiente');
+    const totalPersonas  = regs.length;
+    const totalTarjetas  = regs.reduce((s, r) => s + (Number(r.cantidad)  || 0), 0);
+    const pagados        = regs.filter(r => r.estado === 'pagado');
+    const señas          = regs.filter(r => r.estado === 'seña');
+    const pendientes     = regs.filter(r => r.estado === 'pendiente');
 
-    const tarjetasPagadas   = pagados.reduce((s, r)    => s + Number(r.cantidad), 0);
-    const tarjetasSena      = señas.reduce((s, r)      => s + Number(r.cantidad), 0);
+    const tarjetasPagadas    = pagados.reduce((s, r)    => s + Number(r.cantidad), 0);
+    const tarjetasSena       = señas.reduce((s, r)      => s + Number(r.cantidad), 0);
     const tarjetasPendientes = pendientes.reduce((s, r) => s + Number(r.cantidad), 0);
 
-    const totalCobrado   = regs.reduce((s, r) => s + Number(r.montoPagado || 0), 0);
-    const totalEsperado  = regs.reduce((s, r) => s + Number(r.totalDebe   || 0), 0);
+    const totalCobrado   = regs.reduce((s, r) => s + (Number(r.montoPagado) || 0), 0);
+    const totalEsperado  = regs.reduce((s, r) => s + (Number(r.totalDebe)   || 0), 0);
     const totalPorCobrar = totalEsperado - totalCobrado;
 
     setText('stat-total-tarjetas', totalTarjetas);
     setText('stat-total-personas', totalPersonas);
-    setText('stat-pagado',   tarjetasPagadas);
-    setText('stat-seña',     tarjetasSena);
-    setText('stat-pendiente',tarjetasPendientes);
-    setText('stat-cobrado',   '$' + fmt(totalCobrado));
-    setText('stat-por-cobrar','$' + fmt(totalPorCobrar));
-    setText('stat-esperado',  '$' + fmt(totalEsperado));
+    setText('stat-pagado',         tarjetasPagadas);
+    setText('stat-seña',           tarjetasSena);
+    setText('stat-pendiente',      tarjetasPendientes);
+    setText('stat-cobrado',        '$' + fmt(totalCobrado));
+    setText('stat-por-cobrar',     '$' + fmt(totalPorCobrar));
+    setText('stat-esperado',       '$' + fmt(totalEsperado));
 
-    // Por tipo
     const tipos = {};
     regs.forEach(r => {
       const t = r.tipoPrecio || 'Sin tipo';
-      if (!tipos[t]) tipos[t] = { cantidad: 0, total: 0 };
-      tipos[t].cantidad += Number(r.cantidad) || 0;
-      tipos[t].total    += Number(r.totalDebe) || 0;
+      if (!tipos[t]) tipos[t] = { cantidad: 0, total: 0, cobrado: 0 };
+      tipos[t].cantidad += Number(r.cantidad)    || 0;
+      tipos[t].total    += Number(r.totalDebe)   || 0;
+      tipos[t].cobrado  += Number(r.montoPagado) || 0;
     });
 
     document.getElementById('stat-por-tipo').innerHTML =
-      Object.entries(tipos).length === 0
+      !Object.keys(tipos).length
         ? '<p class="px-4 py-3 text-sm text-gray-400">Sin datos</p>'
-        : Object.entries(tipos).map(([tipo, data]) =>
-            `<div class="flex justify-between px-4 py-3 text-sm">
-              <span class="text-gray-600">${esc(tipo)}</span>
-              <span class="text-gray-800 font-medium">${data.cantidad} tarjeta${data.cantidad !== 1 ? 's' : ''} — $${fmt(data.total)}</span>
-            </div>`
-          ).join('');
+        : Object.entries(tipos).map(([tipo, d]) => `
+            <div class="px-4 py-3 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-700 font-medium">${esc(tipo)}</span>
+                <span class="text-gray-800 font-semibold">${d.cantidad} tarjeta${d.cantidad !== 1 ? 's' : ''}</span>
+              </div>
+              <div class="flex justify-between text-xs mt-0.5">
+                <span class="text-green-600">Cobrado: $${fmt(d.cobrado)}</span>
+                <span class="text-gray-500">Total: $${fmt(d.total)}</span>
+              </div>
+            </div>`).join('');
   }
 
-  // ============================================================
-  // EDITAR / ELIMINAR
-  // ============================================================
-  function openEdit(id) {
-    const reg = state.registrations.find(r => r.id === id);
-    if (!reg) return;
-
-    document.getElementById('edit-id').value = id;
-    document.getElementById('edit-estado').value = reg.estado;
-    document.getElementById('edit-montoPagado').value = reg.montoPagado || 0;
-    document.getElementById('edit-metodoPago').value = reg.metodoPago || '';
-    document.getElementById('edit-notas').value = reg.notas || '';
-
-    onEditEstadoChange();
-    show('editModal');
-  }
-
-  function onEditEstadoChange() {
-    const estado = document.getElementById('edit-estado').value;
-    const box = document.getElementById('edit-montoPagadoBox');
-    if (estado === 'seña') { box.classList.remove('hidden'); }
-    else { box.classList.add('hidden'); }
-  }
-
-  async function saveEdit() {
-    const id = document.getElementById('edit-id').value;
-    const estado = document.getElementById('edit-estado').value;
-    const reg = state.registrations.find(r => r.id === id);
-    if (!reg) return;
-
-    const totalDebe = Number(reg.totalDebe) || 0;
-    let montoPagado = 0;
-    if (estado === 'pagado') montoPagado = totalDebe;
-    else if (estado === 'seña') montoPagado = parseFloat(document.getElementById('edit-montoPagado').value) || 0;
-
-    const fields = {
-      estado,
-      montoPagado,
-      metodoPago: document.getElementById('edit-metodoPago').value,
-      notas: document.getElementById('edit-notas').value.trim()
-    };
-
-    showLoading(true);
-    try {
-      const r = await api('updateRegistration', { id, fields });
-      if (r.success) {
-        toast('✅ Registro actualizado');
-        closeModal();
-        await loadRegistrations();
-      } else {
-        toast('❌ Error: ' + (r.error || 'desconocido'), 'error');
-      }
-    } finally {
-      showLoading(false);
-    }
-  }
-
-  async function deleteReg(id, nombre) {
-    if (!confirm(`¿Borrar el registro de "${nombre}"? Esta acción no se puede deshacer.`)) return;
-
-    showLoading(true);
-    try {
-      const r = await api('deleteRegistration', { id });
-      if (r.success) {
-        toast('🗑️ Registro eliminado');
-        await loadRegistrations();
-      } else {
-        toast('❌ Error: ' + (r.error || 'desconocido'), 'error');
-      }
-    } finally {
-      showLoading(false);
-    }
-  }
-
-  function closeModal() { hide('editModal'); }
-
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
   // EXPORTAR CSV
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
   function exportCSV() {
-    const regs = state.filteredRegs.length > 0 ? state.filteredRegs : state.registrations;
-    if (regs.length === 0) { toast('Sin datos para exportar.', 'error'); return; }
+    const regs = state.filteredRegs.length ? state.filteredRegs : state.registrations;
+    if (!regs.length) { toast('Sin datos para exportar.', 'error'); return; }
 
-    const headers = ['Nombre', 'Cantidad', 'Tipo', 'Precio Unitario', 'Total', 'Pagado', 'Estado', 'Método', 'Notas', 'Fecha'];
-    const rows = regs.map(r => [
-      r.nombre,
-      r.cantidad,
-      r.tipoPrecio,
-      r.precioUnitario,
-      r.totalDebe,
-      r.montoPagado,
-      r.estado,
-      r.metodoPago,
-      r.notas,
-      r.timestamp ? new Date(r.timestamp).toLocaleDateString('es-AR') : ''
-    ].map(v => `"${String(v || '').replace(/"/g, '""')}"`));
+    const eventName = state.config.eventName || 'Evento';
 
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    // Cabecera del evento
+    const info = [
+      [`"${eventName}"`],
+      [state.config.eventDate ? `"Fecha: ${formatDate(state.config.eventDate)}"` : ''],
+      [''],
+    ];
+
+    const headers = ['"Nombre"', '"Tipo"', '"Cant. Tarjetas"', '"Pagado"', '"Debe"', '"Total"', '"Estado"', '"Método"'];
+
+    const rows = regs.map(r => {
+      const totalDebe   = Number(r.totalDebe)   || 0;
+      const montoPagado = Number(r.montoPagado) || 0;
+      const debe        = totalDebe - montoPagado;
+      return [
+        `"${String(r.nombre     || '').replace(/"/g, '""')}"`,
+        `"${String(r.tipoPrecio || '').replace(/"/g, '""')}"`,
+        r.cantidad,
+        montoPagado,
+        debe > 0 ? debe : 0,
+        totalDebe,
+        `"${r.estado}"`,
+        `"${r.metodoPago || ''}"`,
+      ];
+    });
+
+    // Fila de totales
+    const totPagado = regs.reduce((s, r) => s + (Number(r.montoPagado) || 0), 0);
+    const totDebe   = regs.reduce((s, r) => s + Math.max(0, (Number(r.totalDebe) || 0) - (Number(r.montoPagado) || 0)), 0);
+    const totTotal  = regs.reduce((s, r) => s + (Number(r.totalDebe) || 0), 0);
+    const totTarj   = regs.reduce((s, r) => s + (Number(r.cantidad)  || 0), 0);
+    const totals    = ['"TOTAL"', '""', totTarj, totPagado, totDebe, totTotal, '""', '""'];
+
+    const csv = [
+      ...info.map(r => r.join(',')),
+      headers.join(','),
+      ...rows.map(r => r.join(',')),
+      '',
+      totals.join(','),
+    ].join('\n');
+
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    const eventName = (state.config.eventName || 'tarjetas').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    link.download = `${eventName}_${new Date().toISOString().slice(0,10)}.csv`;
+    link.href  = URL.createObjectURL(blob);
+    const fname = (state.config.eventName || 'tarjetas').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.download = `${fname}_${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     toast('📁 CSV descargado');
   }
 
-  // ============================================================
-  // REFRESH
-  // ============================================================
-  async function refresh() {
-    await loadAll();
-    toast('↻ Datos actualizados');
-  }
-
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
   // TABS
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
   function showTab(tabId) {
-    state.currentTab = tabId;
     document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
     document.getElementById(tabId).classList.remove('hidden');
-
     document.querySelectorAll('.tabBtn').forEach(btn => {
-      if (btn.dataset.tab === tabId) {
-        btn.classList.add('border-b-2', 'border-blue-600', 'text-blue-600', 'font-semibold');
-        btn.classList.remove('text-gray-500');
-      } else {
-        btn.classList.remove('border-b-2', 'border-blue-600', 'text-blue-600', 'font-semibold');
-        btn.classList.add('text-gray-500');
-      }
+      const active = btn.dataset.tab === tabId;
+      btn.classList.toggle('border-b-2',      active);
+      btn.classList.toggle('border-blue-600', active);
+      btn.classList.toggle('text-blue-600',   active);
+      btn.classList.toggle('font-semibold',   active);
+      btn.classList.toggle('text-gray-500',   !active);
     });
-
-    // Refrescar vistas al cambiar tab
-    if (tabId === 'tab-listado') filterList();
-    if (tabId === 'tab-resumen') renderResumen();
-    if (tabId === 'tab-config') renderConfigForm();
+    if (tabId === 'tab-listado')    { filterList();        }
+    if (tabId === 'tab-resumen')    { renderResumen();     }
+    if (tabId === 'tab-movimientos'){ renderMovimientos(); }
+    if (tabId === 'tab-config')     { renderConfigForm();  }
   }
 
-  // ============================================================
+  async function refresh() { await loadAll(); toast('↻ Datos actualizados'); }
+
+  // ──────────────────────────────────────────────────────────
   // UTILIDADES UI
-  // ============================================================
+  // ──────────────────────────────────────────────────────────
   let toastTimer;
   function toast(msg, type = 'success') {
     const el = document.getElementById('toast');
@@ -966,46 +1262,24 @@ const App = (() => {
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.add('hidden'), 3000);
   }
-
-  function showLoading(val) {
-    document.getElementById('loadingOverlay').classList.toggle('hidden', !val);
-  }
-
+  function showLoading(v) { document.getElementById('loadingOverlay').classList.toggle('hidden', !v); }
   function show(id) { document.getElementById(id).classList.remove('hidden'); }
   function hide(id) { document.getElementById(id).classList.add('hidden'); }
-  function setText(id, val) { document.getElementById(id).textContent = val; }
+  function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+  function getRadioVal(name) { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; }
+  function fmt(n) { return Number(n || 0).toLocaleString('es-AR'); }
+  function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function formatDate(d) { if (!d) return ''; const [y,m,dd] = d.split('-'); return `${dd}/${m}/${y}`; }
 
-  function getRadioVal(name) {
-    const el = document.querySelector(`input[name="${name}"]:checked`);
-    return el ? el.value : '';
-  }
-
-  function fmt(n) {
-    return Number(n || 0).toLocaleString('es-AR');
-  }
-
-  function esc(str) {
-    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const [y, m, d] = dateStr.split('-');
-    return `${d}/${m}/${y}`;
-  }
-
-  // Exponer para los onclick en HTML
   return {
-    init, saveSetup, saveConfig, saveApiUrl, refresh,
-    showTab, addPriceType, removePriceType, updatePriceType,
-    onTipoChange, changeQty, calcTotal, onEstadoChange, calcDeuda,
-    submitRegistro, filterList,
-    openEdit, onEditEstadoChange, saveEdit, deleteReg, closeModal,
-    exportCSV
+    init, saveSetup, saveConfig, saveApiUrl, refresh, showTab,
+    addPriceType, removePriceType, updatePriceType,
+    onTipoChange, changeQty, calcTotal, onEstadoChange, calcDeuda, submitRegistro,
+    filterList, openPago, onPagoTipoChange, onParcialTipoChange, calcPagoPreview, savePago, closePagoModal,
+    deleteReg, exportCSV,
   };
 })();
 
-// Arrancar
 window.addEventListener('DOMContentLoaded', App.init);
 </script>
 </body>

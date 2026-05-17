@@ -1,14 +1,15 @@
 // ============================================================
 // GESTIÓN DE TARJETAS - Club Deportivo Mitre
-// Google Apps Script - Backend
+// Google Apps Script - Backend v2
 // ============================================================
-// Todas las operaciones usan GET para compatibilidad con CORS
+// Todas las operaciones usan GET para compatibilidad CORS
 // desde GitHub Pages.
 // Desplegar como: Ejecutar como "Yo" | Acceso "Cualquiera"
 // ============================================================
 
 const SHEET_REG = 'Registros';
 const SHEET_CFG = 'Config';
+const SHEET_MOV = 'Movimientos';
 
 // --- Respuesta JSON estándar ---
 function jsonResponse(data) {
@@ -20,23 +21,19 @@ function jsonResponse(data) {
 // --- Handler principal (todo vía GET) ---
 function doGet(e) {
   try {
-    const action = e.parameter.action;
+    const action  = e.parameter.action;
     const rawData = e.parameter.data;
-    const data = rawData ? JSON.parse(rawData) : null;
+    const data    = rawData ? JSON.parse(rawData) : null;
 
     switch (action) {
-      case 'getConfig':
-        return jsonResponse(getConfig());
-      case 'saveConfig':
-        return jsonResponse(saveConfig(data));
-      case 'getRegistrations':
-        return jsonResponse(getRegistrations());
-      case 'addRegistration':
-        return jsonResponse(addRegistration(data));
-      case 'updateRegistration':
-        return jsonResponse(updateRegistration(data.id, data.fields));
-      case 'deleteRegistration':
-        return jsonResponse(deleteRegistration(data.id));
+      case 'getConfig':          return jsonResponse(getConfig());
+      case 'saveConfig':         return jsonResponse(saveConfig(data));
+      case 'getRegistrations':   return jsonResponse(getRegistrations());
+      case 'addRegistration':    return jsonResponse(addRegistration(data));
+      case 'updateRegistration': return jsonResponse(updateRegistration(data.id, data.fields));
+      case 'deleteRegistration': return jsonResponse(deleteRegistration(data.id));
+      case 'getMovimientos':     return jsonResponse(getMovimientos());
+      case 'addMovimiento':      return jsonResponse(addMovimiento(data));
       default:
         return jsonResponse({ success: false, error: 'Acción no reconocida: ' + action });
     }
@@ -50,21 +47,19 @@ function doGet(e) {
 // ============================================================
 
 function getConfig() {
-  const sheet = getOrCreateSheet(SHEET_CFG);
+  const sheet   = getOrCreateSheet(SHEET_CFG);
   const numRows = sheet.getLastRow();
 
   if (numRows === 0) {
-    // Hoja vacía: retornar config por defecto
     return { success: true, config: { eventName: '', eventDate: '', priceTypes: [] } };
   }
 
-  const data = sheet.getRange(1, 1, numRows, 2).getValues();
+  const data   = sheet.getRange(1, 1, numRows, 2).getValues();
   const config = {};
   data.forEach(function(row) {
     if (row[0]) config[row[0]] = row[1];
   });
 
-  // Parsear tipos de precio desde JSON
   if (config.priceTypes) {
     try { config.priceTypes = JSON.parse(config.priceTypes); }
     catch (e) { config.priceTypes = []; }
@@ -80,8 +75,8 @@ function saveConfig(config) {
   sheet.clearContents();
 
   const rows = [
-    ['eventName', config.eventName || ''],
-    ['eventDate', config.eventDate || ''],
+    ['eventName',  config.eventName  || ''],
+    ['eventDate',  config.eventDate  || ''],
     ['priceTypes', JSON.stringify(config.priceTypes || [])]
   ];
 
@@ -93,25 +88,24 @@ function saveConfig(config) {
 // REGISTROS
 // ============================================================
 
-// Columnas del sheet de registros
 const HEADERS = [
   'id', 'timestamp', 'nombre', 'cantidad',
   'tipoPrecio', 'precioUnitario', 'totalDebe',
   'montoPagado', 'estado', 'metodoPago', 'notas'
 ];
 
-function ensureHeaders(sheet) {
+function ensureRegHeaders(sheet) {
   if (sheet.getLastRow() === 0) {
     sheet.appendRow(HEADERS);
-    // Formatear encabezados
-    sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight('bold').setBackground('#34495e').setFontColor('#ffffff');
+    sheet.getRange(1, 1, 1, HEADERS.length)
+      .setFontWeight('bold').setBackground('#1a5276').setFontColor('#ffffff');
     sheet.setFrozenRows(1);
   }
 }
 
 function getRegistrations() {
-  const sheet = getOrCreateSheet(SHEET_REG);
-  ensureHeaders(sheet);
+  const sheet   = getOrCreateSheet(SHEET_REG);
+  ensureRegHeaders(sheet);
 
   const lastRow = sheet.getLastRow();
   if (lastRow <= 1) return { success: true, registrations: [] };
@@ -119,7 +113,7 @@ function getRegistrations() {
   const data = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
 
   const registrations = data
-    .filter(function(row) { return row[0] !== ''; }) // filtrar filas vacías
+    .filter(function(row) { return row[0] !== ''; })
     .map(function(row) {
       const obj = {};
       HEADERS.forEach(function(h, i) { obj[h] = row[i]; });
@@ -131,31 +125,30 @@ function getRegistrations() {
 
 function addRegistration(reg) {
   const sheet = getOrCreateSheet(SHEET_REG);
-  ensureHeaders(sheet);
+  ensureRegHeaders(sheet);
 
-  const id = generateId();
+  const id        = generateId();
   const timestamp = new Date().toISOString();
 
-  const row = [
+  sheet.appendRow([
     id,
     timestamp,
-    reg.nombre || '',
-    Number(reg.cantidad) || 1,
-    reg.tipoPrecio || '',
-    Number(reg.precioUnitario) || 0,
-    Number(reg.totalDebe) || 0,
-    Number(reg.montoPagado) || 0,
-    reg.estado || 'pendiente',   // 'pagado' | 'seña' | 'pendiente'
-    reg.metodoPago || '',
-    reg.notas || ''
-  ];
+    reg.nombre          || '',
+    Number(reg.cantidad)        || 1,
+    reg.tipoPrecio      || '',
+    Number(reg.precioUnitario)  || 0,
+    Number(reg.totalDebe)       || 0,
+    Number(reg.montoPagado)     || 0,
+    reg.estado          || 'pendiente',
+    reg.metodoPago      || '',
+    reg.notas           || ''
+  ]);
 
-  sheet.appendRow(row);
   return { success: true, id: id };
 }
 
 function updateRegistration(id, fields) {
-  const sheet = getOrCreateSheet(SHEET_REG);
+  const sheet   = getOrCreateSheet(SHEET_REG);
   const lastRow = sheet.getLastRow();
   if (lastRow <= 1) return { success: false, error: 'No hay registros' };
 
@@ -163,7 +156,7 @@ function updateRegistration(id, fields) {
 
   for (var i = 0; i < data.length; i++) {
     if (data[i][0] === id) {
-      const rowNum = i + 2; // +1 por header, +1 por base-1
+      const rowNum = i + 2;
       Object.keys(fields).forEach(function(key) {
         const colIndex = HEADERS.indexOf(key);
         if (colIndex >= 0) {
@@ -178,7 +171,7 @@ function updateRegistration(id, fields) {
 }
 
 function deleteRegistration(id) {
-  const sheet = getOrCreateSheet(SHEET_REG);
+  const sheet   = getOrCreateSheet(SHEET_REG);
   const lastRow = sheet.getLastRow();
   if (lastRow <= 1) return { success: false, error: 'No hay registros' };
 
@@ -195,20 +188,86 @@ function deleteRegistration(id) {
 }
 
 // ============================================================
+// MOVIMIENTOS
+// ============================================================
+// Un movimiento = un cobro puntual registrado en el evento.
+// tipo: 'completo' | 'tarjetas' | 'seña'
+// cantidadTarjetas: cuántas tarjetas completas se pagaron
+//                   (0 si fue una seña libre)
+// ============================================================
+
+const MOV_HEADERS = [
+  'id', 'timestamp', 'registrationId', 'nombre',
+  'tipoPrecio', 'cantidadTarjetas', 'montoCobrado',
+  'metodoPago', 'notas', 'tipo'
+];
+
+function ensureMovHeaders(sheet) {
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(MOV_HEADERS);
+    sheet.getRange(1, 1, 1, MOV_HEADERS.length)
+      .setFontWeight('bold').setBackground('#1e8449').setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+  }
+}
+
+function getMovimientos() {
+  const sheet   = getOrCreateSheet(SHEET_MOV);
+  ensureMovHeaders(sheet);
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return { success: true, movimientos: [] };
+
+  const data = sheet.getRange(2, 1, lastRow - 1, MOV_HEADERS.length).getValues();
+
+  const movimientos = data
+    .filter(function(row) { return row[0] !== ''; })
+    .map(function(row) {
+      const obj = {};
+      MOV_HEADERS.forEach(function(h, i) { obj[h] = row[i]; });
+      return obj;
+    })
+    .reverse(); // más nuevo primero
+
+  return { success: true, movimientos: movimientos };
+}
+
+function addMovimiento(mov) {
+  const sheet = getOrCreateSheet(SHEET_MOV);
+  ensureMovHeaders(sheet);
+
+  const id        = generateId();
+  const timestamp = new Date().toISOString();
+
+  sheet.appendRow([
+    id,
+    timestamp,
+    mov.registrationId    || '',
+    mov.nombre            || '',
+    mov.tipoPrecio        || '',
+    Number(mov.cantidadTarjetas) || 0,
+    Number(mov.montoCobrado)     || 0,
+    mov.metodoPago        || '',
+    mov.notas             || '',
+    mov.tipo              || 'pago'   // 'completo' | 'tarjetas' | 'seña'
+  ]);
+
+  return { success: true, id: id };
+}
+
+// ============================================================
 // UTILIDADES
 // ============================================================
 
 function getOrCreateSheet(name) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(name);
-  if (!sheet) {
-    sheet = ss.insertSheet(name);
-  }
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  let   sheet = ss.getSheetByName(name);
+  if (!sheet) sheet = ss.insertSheet(name);
   return sheet;
 }
 
 function generateId() {
-  const ts = new Date().getTime().toString(36);
+  const ts   = new Date().getTime().toString(36);
   const rand = Math.random().toString(36).substring(2, 7);
   return ts + rand;
 }
@@ -218,28 +277,32 @@ function generateId() {
 // ============================================================
 function testSetup() {
   const config = {
-    eventName: 'Peña Folklórica - Prueba',
-    eventDate: '2025-06-01',
+    eventName:  'Peña Folklórica - Prueba',
+    eventDate:  '2025-06-01',
     priceTypes: [
-      { name: 'General', amount: 5000 },
+      { name: 'General',  amount: 5000 },
       { name: 'Especial', amount: 4000 },
-      { name: 'Menor', amount: 2500 }
+      { name: 'Menor',    amount: 2500 }
     ]
   };
-  Logger.log(saveConfig(config));
-  Logger.log(getConfig());
+  Logger.log('saveConfig: ' + JSON.stringify(saveConfig(config)));
+  Logger.log('getConfig:  ' + JSON.stringify(getConfig()));
 
   const reg = {
-    nombre: 'Juan Pérez',
-    cantidad: 2,
-    tipoPrecio: 'General',
-    precioUnitario: 5000,
-    totalDebe: 10000,
-    montoPagado: 10000,
-    estado: 'pagado',
-    metodoPago: 'efectivo',
-    notas: ''
+    nombre: 'Carlos González', cantidad: 10,
+    tipoPrecio: 'General', precioUnitario: 5000,
+    totalDebe: 50000, montoPagado: 5000,
+    estado: 'seña', metodoPago: 'efectivo', notas: ''
   };
-  Logger.log(addRegistration(reg));
-  Logger.log(getRegistrations());
+  const addResult = addRegistration(reg);
+  Logger.log('addReg: ' + JSON.stringify(addResult));
+
+  const mov = {
+    registrationId: addResult.id, nombre: 'Carlos González',
+    tipoPrecio: 'General', cantidadTarjetas: 1,
+    montoCobrado: 5000, metodoPago: 'efectivo',
+    notas: '', tipo: 'tarjetas'
+  };
+  Logger.log('addMov: ' + JSON.stringify(addMovimiento(mov)));
+  Logger.log('getMov: ' + JSON.stringify(getMovimientos()));
 }
