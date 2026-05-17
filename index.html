@@ -1293,7 +1293,7 @@ const App = (() => {
   function getRadioVal(name) { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; }
   function fmt(n) { return Number(n || 0).toLocaleString('es-AR'); }
   function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-  function formatDate(d) { if (!d) return ''; const [y,m,dd] = d.split('-'); return `${dd}/${m}/${y}`; }
+  function formatDate(d) { if (!d) return ''; const [y,m,dd] = d.slice(0,10).split('-'); return `${dd}/${m}/${y}`; }
 
   return {
     init, saveSetup, saveConfig, saveApiUrl, refresh, showTab,
