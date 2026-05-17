@@ -88,6 +88,30 @@
       </div>
 
       <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de entrada <span class="text-red-500">*</span></label>
+        <div class="grid grid-cols-3 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="f-genero" value="Hombre" class="peer hidden" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition">
+              👨<br/><span class="font-medium">Hombre</span>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="f-genero" value="Mujer" class="peer hidden" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-pink-500 peer-checked:bg-pink-50 peer-checked:text-pink-700 transition">
+              👩<br/><span class="font-medium">Mujer</span>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="f-genero" value="Niño" class="peer hidden" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 transition">
+              🧒<br/><span class="font-medium">Niño</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de tarjeta <span class="text-red-500">*</span></label>
         <select id="f-tipoPrecio" required onchange="App.onTipoChange()"
           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
@@ -237,51 +261,60 @@
   <!-- TAB: RESUMEN                                                -->
   <!-- =========================================================== -->
   <section id="tab-resumen" class="tab-content hidden p-4">
-    <div class="grid grid-cols-2 gap-3 mb-5">
-      <div class="bg-white rounded-xl p-4 border border-gray-200 text-center">
-        <p class="text-3xl font-bold text-gray-800" id="stat-total-tarjetas">—</p>
-        <p class="text-xs text-gray-500 mt-1">Total tarjetas</p>
-      </div>
-      <div class="bg-white rounded-xl p-4 border border-gray-200 text-center">
-        <p class="text-3xl font-bold text-gray-800" id="stat-total-personas">—</p>
-        <p class="text-xs text-gray-500 mt-1">Personas registradas</p>
-      </div>
-      <div class="bg-green-50 rounded-xl p-4 border border-green-200 text-center">
-        <p class="text-3xl font-bold text-green-700" id="stat-pagado">—</p>
-        <p class="text-xs text-green-600 mt-1">✅ Tarjetas pagas</p>
-      </div>
-      <div class="bg-yellow-50 rounded-xl p-4 border border-yellow-200 text-center">
-        <p class="text-3xl font-bold text-yellow-700" id="stat-seña">—</p>
-        <p class="text-xs text-yellow-600 mt-1">💵 Con seña</p>
-      </div>
-      <div class="bg-red-50 rounded-xl p-4 border border-red-200 text-center col-span-2">
-        <p class="text-3xl font-bold text-red-600" id="stat-pendiente">—</p>
-        <p class="text-xs text-red-500 mt-1">⏳ Pendientes de pago</p>
+
+    <!-- Tarjetas -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
+      <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">🎟️ Tarjetas</div>
+      <div class="divide-y divide-gray-100">
+        <div class="flex justify-between px-4 py-3 text-sm">
+          <span class="text-gray-500">Entradas pedidas</span>
+          <span class="font-semibold text-gray-800" id="stat-pedidas">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-3 text-sm">
+          <span class="text-gray-500">✅ Cobradas</span>
+          <span class="font-semibold text-green-700" id="stat-cobradas">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-3 text-sm">
+          <span class="text-gray-500">⏳ Pendientes</span>
+          <span class="font-semibold text-red-600" id="stat-pendientes-tarj">—</span>
+        </div>
       </div>
     </div>
 
+    <!-- Dinero -->
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
-      <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">💰 Movimiento de dinero</div>
+      <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">💰 Dinero</div>
       <div class="divide-y divide-gray-100">
         <div class="flex justify-between px-4 py-3 text-sm">
-          <span class="text-gray-500">Total cobrado</span>
+          <span class="text-gray-500">Monto cobrado</span>
           <span class="font-semibold text-green-700" id="stat-cobrado">—</span>
         </div>
         <div class="flex justify-between px-4 py-3 text-sm">
-          <span class="text-gray-500">Pendiente por cobrar</span>
-          <span class="font-semibold text-red-600" id="stat-por-cobrar">—</span>
+          <span class="text-gray-500">Monto pendiente</span>
+          <span class="font-semibold text-red-600" id="stat-pendiente-dinero">—</span>
         </div>
         <div class="flex justify-between px-4 py-3 text-sm">
-          <span class="text-gray-500">Total esperado</span>
-          <span class="font-semibold text-gray-800" id="stat-esperado">—</span>
+          <span class="text-gray-500">Monto total</span>
+          <span class="font-semibold text-gray-800" id="stat-total-dinero">—</span>
         </div>
       </div>
     </div>
 
+    <!-- Por tipo de persona -->
     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">📊 Por tipo de tarjeta</div>
-      <div id="stat-por-tipo" class="divide-y divide-gray-100"></div>
+      <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">👥 Por tipo de persona</div>
+      <div class="divide-y divide-gray-100">
+        <div class="flex justify-between px-4 py-3 text-sm">
+          <span class="text-gray-500">Mayores (Hombre + Mujer)</span>
+          <span class="font-semibold text-gray-800" id="stat-mayores">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-3 text-sm">
+          <span class="text-gray-500">Menores (Niño)</span>
+          <span class="font-semibold text-gray-800" id="stat-menores">—</span>
+        </div>
+      </div>
     </div>
+
   </section>
 
   <!-- =========================================================== -->
@@ -367,7 +400,7 @@
 
         <!-- Multi-ticket: elegir tarjetas o seña -->
         <div id="pago-multi-opts" class="hidden space-y-3">
-          <p class="text-sm font-medium text-gray-700">¿Cómo pagá?</p>
+          <p class="text-sm font-medium text-gray-700">¿Qué pagá?</p>
           <div class="grid grid-cols-2 gap-2">
             <label class="cursor-pointer">
               <input type="radio" name="pago-parcial-tipo" value="tarjetas" class="peer hidden" onchange="App.onParcialTipoChange()" />
@@ -665,6 +698,7 @@ const App = (() => {
 
   async function submitRegistro() {
     const nombre        = document.getElementById('f-nombre').value.trim();
+    const genero        = getRadioVal('f-genero');
     const tipoSel       = document.getElementById('f-tipoPrecio');
     const tipoPrecio    = tipoSel.value;
     const precioUnitario = parseFloat(tipoSel.options[tipoSel.selectedIndex]?.dataset?.amount) || 0;
@@ -674,6 +708,7 @@ const App = (() => {
     const notas         = document.getElementById('f-notas').value.trim();
 
     if (!nombre)     { toast('Ingresá el nombre.',          'error'); return; }
+    if (!genero)     { toast('Seleccioná tipo de entrada.', 'error'); return; }
     if (!tipoPrecio) { toast('Seleccioná tipo de tarjeta.', 'error'); return; }
     if (!estado)     { toast('Seleccioná estado de pago.',  'error'); return; }
 
@@ -684,7 +719,7 @@ const App = (() => {
 
     showLoading(true);
     try {
-      const r = await api('addRegistration', { nombre, cantidad, tipoPrecio, precioUnitario, totalDebe, montoPagado, estado, metodoPago, notas });
+      const r = await api('addRegistration', { nombre, genero, cantidad, tipoPrecio, precioUnitario, totalDebe, montoPagado, estado, metodoPago, notas });
       if (r.success) {
         // Si tiene pago inicial, registrar movimiento
         if (montoPagado > 0) {
@@ -711,6 +746,7 @@ const App = (() => {
     document.getElementById('f-cantidad').value      = 1;
     document.getElementById('f-montoPagado').value   = 0;
     document.getElementById('f-notas').value         = '';
+    document.querySelectorAll('input[name="f-genero"]').forEach(r => r.checked = false);
     document.querySelectorAll('input[name="f-estado"]').forEach(r => r.checked = false);
     document.querySelectorAll('input[name="f-metodo"]').forEach(r => r.checked = false);
     document.getElementById('f-precioLabel').textContent = '';
@@ -1077,7 +1113,7 @@ const App = (() => {
     const movs = state.movimientos; // ya vienen ordenados más nuevo primero
 
     if (!movs.length) {
-      container.innerHTML = `<div class="text-center py-12 text-gray-400"><div class="text-4xl mb-2">💳</div><p class="text-sm">Sin movimientos registrados</p></div>`;
+      container.innerHTML = `<div class="text-center py-12 text-gray-400"><div class="text-4xl mb-2">💳</div><p class="text-sm font-medium mb-1">Sin movimientos registrados</p><p class="text-xs">Los cobros aparecerán aquí cada vez que registres un pago nuevo o desde el listado.</p></div>`;
       return;
     }
 
@@ -1123,52 +1159,25 @@ const App = (() => {
   function renderResumen() {
     const regs = state.registrations;
 
-    const totalPersonas  = regs.length;
-    const totalTarjetas  = regs.reduce((s, r) => s + (Number(r.cantidad)  || 0), 0);
-    const pagados        = regs.filter(r => r.estado === 'pagado');
-    const señas          = regs.filter(r => r.estado === 'seña');
-    const pendientes     = regs.filter(r => r.estado === 'pendiente');
+    const pedidas      = regs.reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
+    const cobradas     = regs.filter(r => r.estado === 'pagado').reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
+    const pendTarj     = pedidas - cobradas;
 
-    const tarjetasPagadas    = pagados.reduce((s, r)    => s + Number(r.cantidad), 0);
-    const tarjetasSena       = señas.reduce((s, r)      => s + Number(r.cantidad), 0);
-    const tarjetasPendientes = pendientes.reduce((s, r) => s + Number(r.cantidad), 0);
+    const cobrado      = regs.reduce((s, r) => s + (Number(r.montoPagado) || 0), 0);
+    const totalDin     = regs.reduce((s, r) => s + (Number(r.totalDebe)   || 0), 0);
+    const pendDin      = totalDin - cobrado;
 
-    const totalCobrado   = regs.reduce((s, r) => s + (Number(r.montoPagado) || 0), 0);
-    const totalEsperado  = regs.reduce((s, r) => s + (Number(r.totalDebe)   || 0), 0);
-    const totalPorCobrar = totalEsperado - totalCobrado;
+    const mayores      = regs.filter(r => r.genero === 'Hombre' || r.genero === 'Mujer').reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
+    const menores      = regs.filter(r => r.genero === 'Niño').reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
 
-    setText('stat-total-tarjetas', totalTarjetas);
-    setText('stat-total-personas', totalPersonas);
-    setText('stat-pagado',         tarjetasPagadas);
-    setText('stat-seña',           tarjetasSena);
-    setText('stat-pendiente',      tarjetasPendientes);
-    setText('stat-cobrado',        '$' + fmt(totalCobrado));
-    setText('stat-por-cobrar',     '$' + fmt(totalPorCobrar));
-    setText('stat-esperado',       '$' + fmt(totalEsperado));
-
-    const tipos = {};
-    regs.forEach(r => {
-      const t = r.tipoPrecio || 'Sin tipo';
-      if (!tipos[t]) tipos[t] = { cantidad: 0, total: 0, cobrado: 0 };
-      tipos[t].cantidad += Number(r.cantidad)    || 0;
-      tipos[t].total    += Number(r.totalDebe)   || 0;
-      tipos[t].cobrado  += Number(r.montoPagado) || 0;
-    });
-
-    document.getElementById('stat-por-tipo').innerHTML =
-      !Object.keys(tipos).length
-        ? '<p class="px-4 py-3 text-sm text-gray-400">Sin datos</p>'
-        : Object.entries(tipos).map(([tipo, d]) => `
-            <div class="px-4 py-3 text-sm">
-              <div class="flex justify-between">
-                <span class="text-gray-700 font-medium">${esc(tipo)}</span>
-                <span class="text-gray-800 font-semibold">${d.cantidad} tarjeta${d.cantidad !== 1 ? 's' : ''}</span>
-              </div>
-              <div class="flex justify-between text-xs mt-0.5">
-                <span class="text-green-600">Cobrado: $${fmt(d.cobrado)}</span>
-                <span class="text-gray-500">Total: $${fmt(d.total)}</span>
-              </div>
-            </div>`).join('');
+    setText('stat-pedidas',        pedidas);
+    setText('stat-cobradas',       cobradas);
+    setText('stat-pendientes-tarj', pendTarj);
+    setText('stat-cobrado',        '$' + fmt(cobrado));
+    setText('stat-pendiente-dinero', '$' + fmt(pendDin));
+    setText('stat-total-dinero',   '$' + fmt(totalDin));
+    setText('stat-mayores',        mayores);
+    setText('stat-menores',        menores);
   }
 
   // ──────────────────────────────────────────────────────────

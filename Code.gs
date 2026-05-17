@@ -89,7 +89,7 @@ function saveConfig(config) {
 // ============================================================
 
 const HEADERS = [
-  'id', 'timestamp', 'nombre', 'cantidad',
+  'id', 'timestamp', 'nombre', 'genero', 'cantidad',
   'tipoPrecio', 'precioUnitario', 'totalDebe',
   'montoPagado', 'estado', 'metodoPago', 'notas'
 ];
@@ -134,6 +134,7 @@ function addRegistration(reg) {
     id,
     timestamp,
     reg.nombre          || '',
+    reg.genero          || '',
     Number(reg.cantidad)        || 1,
     reg.tipoPrecio      || '',
     Number(reg.precioUnitario)  || 0,
