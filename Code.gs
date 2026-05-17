@@ -100,6 +100,13 @@ function ensureRegHeaders(sheet) {
     sheet.getRange(1, 1, 1, HEADERS.length)
       .setFontWeight('bold').setBackground('#1a5276').setFontColor('#ffffff');
     sheet.setFrozenRows(1);
+  } else {
+    const existing = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    if (existing.join(',') !== HEADERS.join(',')) {
+      sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
+      sheet.getRange(1, 1, 1, HEADERS.length)
+        .setFontWeight('bold').setBackground('#1a5276').setFontColor('#ffffff');
+    }
   }
 }
 

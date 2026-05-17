@@ -305,12 +305,16 @@
       <div class="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm">👥 Por tipo de persona</div>
       <div class="divide-y divide-gray-100">
         <div class="flex justify-between px-4 py-3 text-sm">
-          <span class="text-gray-500">Mayores (Hombre + Mujer)</span>
-          <span class="font-semibold text-gray-800" id="stat-mayores">—</span>
+          <span class="text-gray-500">👨 Hombre</span>
+          <span class="font-semibold text-gray-800" id="stat-hombre">—</span>
         </div>
         <div class="flex justify-between px-4 py-3 text-sm">
-          <span class="text-gray-500">Menores (Niño)</span>
-          <span class="font-semibold text-gray-800" id="stat-menores">—</span>
+          <span class="text-gray-500">👩 Mujer</span>
+          <span class="font-semibold text-gray-800" id="stat-mujer">—</span>
+        </div>
+        <div class="flex justify-between px-4 py-3 text-sm">
+          <span class="text-gray-500">🧒 Niño</span>
+          <span class="font-semibold text-gray-800" id="stat-nino">—</span>
         </div>
       </div>
     </div>
@@ -478,8 +482,8 @@
 
       <!-- Botones -->
       <div class="flex gap-3 pt-1">
-        <button onclick="App.savePago()"
-          class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+        <button id="btnGuardarPago" onclick="App.savePago()"
+          class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
           Guardar pago
         </button>
         <button onclick="App.closePagoModal()"
@@ -1046,6 +1050,8 @@ const App = (() => {
                       : nuevoMontoPagado > 0           ? 'seña'
                       :                                  'pendiente';
 
+    const btnGuardar = document.getElementById('btnGuardarPago');
+    if (btnGuardar) { btnGuardar.disabled = true; btnGuardar.textContent = 'Guardando...'; }
     showLoading(true);
     try {
       // 1. Actualizar registro
@@ -1069,7 +1075,10 @@ const App = (() => {
       toast('✅ Pago registrado');
       closePagoModal();
       await loadAll();
-    } finally { showLoading(false); }
+    } finally {
+      showLoading(false);
+      if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = 'Guardar pago'; }
+    }
   }
 
   function closePagoModal() { hide('pagoModal'); state.pagoReg = null; }
@@ -1159,25 +1168,31 @@ const App = (() => {
   function renderResumen() {
     const regs = state.registrations;
 
-    const pedidas      = regs.reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
-    const cobradas     = regs.filter(r => r.estado === 'pagado').reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
-    const pendTarj     = pedidas - cobradas;
+    const pedidas  = regs.reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
+    // tarjetas efectivamente cobradas = floor(montoPagado / precioUnitario) por registro
+    const cobradas = regs.reduce((s, r) => {
+      const pu = Number(r.precioUnitario) || 0;
+      const mp = Number(r.montoPagado)    || 0;
+      if (pu > 0) return s + Math.floor(mp / pu);
+      return s + (r.estado === 'pagado' ? (Number(r.cantidad) || 0) : 0);
+    }, 0);
+    const pendTarj = pedidas - cobradas;
 
-    const cobrado      = regs.reduce((s, r) => s + (Number(r.montoPagado) || 0), 0);
-    const totalDin     = regs.reduce((s, r) => s + (Number(r.totalDebe)   || 0), 0);
-    const pendDin      = totalDin - cobrado;
+    const cobrado  = regs.reduce((s, r) => s + (Number(r.montoPagado) || 0), 0);
+    const totalDin = regs.reduce((s, r) => s + (Number(r.totalDebe)   || 0), 0);
+    const pendDin  = totalDin - cobrado;
 
-    const mayores      = regs.filter(r => r.genero === 'Hombre' || r.genero === 'Mujer').reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
-    const menores      = regs.filter(r => r.genero === 'Niño').reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
+    const cantGenero = g => regs.filter(r => r.genero === g).reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
 
-    setText('stat-pedidas',        pedidas);
-    setText('stat-cobradas',       cobradas);
-    setText('stat-pendientes-tarj', pendTarj);
-    setText('stat-cobrado',        '$' + fmt(cobrado));
+    setText('stat-pedidas',          pedidas);
+    setText('stat-cobradas',         cobradas);
+    setText('stat-pendientes-tarj',  pendTarj);
+    setText('stat-cobrado',          '$' + fmt(cobrado));
     setText('stat-pendiente-dinero', '$' + fmt(pendDin));
-    setText('stat-total-dinero',   '$' + fmt(totalDin));
-    setText('stat-mayores',        mayores);
-    setText('stat-menores',        menores);
+    setText('stat-total-dinero',     '$' + fmt(totalDin));
+    setText('stat-hombre',           cantGenero('Hombre'));
+    setText('stat-mujer',            cantGenero('Mujer'));
+    setText('stat-nino',             cantGenero('Niño'));
   }
 
   // ──────────────────────────────────────────────────────────
