@@ -57,7 +57,15 @@ function getConfig() {
   const data   = sheet.getRange(1, 1, numRows, 2).getValues();
   const config = {};
   data.forEach(function(row) {
-    if (row[0]) config[row[0]] = row[1];
+    if (!row[0]) return;
+    var val = row[1];
+    if (val instanceof Date) {
+      var y = val.getFullYear();
+      var m = String(val.getMonth() + 1).padStart(2, '0');
+      var d = String(val.getDate()).padStart(2, '0');
+      val = y + '-' + m + '-' + d;
+    }
+    config[row[0]] = val;
   });
 
   if (config.priceTypes) {
