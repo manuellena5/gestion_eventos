@@ -496,6 +496,142 @@
   </div>
 </div>
 
+<!-- ===================== MODAL: EDITAR REGISTRO ===================== -->
+<div id="editModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4 no-print">
+  <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div class="p-5 space-y-4">
+
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-gray-800">Editar Registro</h3>
+        <button onclick="App.closeEditModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+        <input id="edit-nombre" type="text" autocomplete="off"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de entrada</label>
+        <div class="grid grid-cols-3 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="edit-genero" value="Hombre" class="peer hidden" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition">
+              👨<br/><span class="font-medium">Hombre</span>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="edit-genero" value="Mujer" class="peer hidden" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-pink-500 peer-checked:bg-pink-50 peer-checked:text-pink-700 transition">
+              👩<br/><span class="font-medium">Mujer</span>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="edit-genero" value="Niño" class="peer hidden" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 transition">
+              🧒<br/><span class="font-medium">Niño</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de tarjeta</label>
+        <select id="edit-tipoPrecio" onchange="App.onEditTipoChange()"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+        </select>
+        <p id="edit-precioLabel" class="text-xs text-gray-400 mt-1"></p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="App.changeEditQty(-1)"
+            class="w-10 h-10 rounded-full border border-gray-300 text-xl font-bold text-gray-600 hover:bg-gray-100 flex items-center justify-center">−</button>
+          <input id="edit-cantidad" type="number" min="1" max="99" value="1"
+            onchange="App.calcEditTotal()"
+            class="w-20 text-center text-xl font-bold border border-gray-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <button type="button" onclick="App.changeEditQty(1)"
+            class="w-10 h-10 rounded-full border border-gray-300 text-xl font-bold text-gray-600 hover:bg-gray-100 flex items-center justify-center">+</button>
+        </div>
+      </div>
+
+      <div id="edit-totalBox" class="hidden bg-blue-50 rounded-lg p-3 text-center">
+        <p class="text-xs text-blue-600 uppercase tracking-wide mb-1">Total a cobrar</p>
+        <p id="edit-totalLabel" class="text-2xl font-bold text-blue-700"></p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Estado del pago</label>
+        <div class="grid grid-cols-3 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="edit-estado" value="pagado" class="peer hidden" onchange="App.onEditEstadoChange()" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 transition">
+              ✅<br/><span class="font-medium">Pagado</span>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="edit-estado" value="seña" class="peer hidden" onchange="App.onEditEstadoChange()" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-yellow-500 peer-checked:bg-yellow-50 peer-checked:text-yellow-700 transition">
+              💵<br/><span class="font-medium">Seña</span>
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="edit-estado" value="pendiente" class="peer hidden" onchange="App.onEditEstadoChange()" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-red-400 peer-checked:bg-red-50 peer-checked:text-red-700 transition">
+              ⏳<br/><span class="font-medium">Pendiente</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div id="edit-señaBox" class="hidden">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Monto pagado $</label>
+        <input id="edit-montoPagado" type="number" min="0" value="0"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+
+      <div id="edit-metodoPagoBox" class="hidden">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Método de pago</label>
+        <div class="grid grid-cols-2 gap-2">
+          <label class="cursor-pointer">
+            <input type="radio" name="edit-metodo" value="efectivo" class="peer hidden" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition">
+              💰 Efectivo
+            </div>
+          </label>
+          <label class="cursor-pointer">
+            <input type="radio" name="edit-metodo" value="transferencia" class="peer hidden" />
+            <div class="border-2 border-gray-200 rounded-lg p-3 text-center text-sm peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition">
+              📲 Transferencia
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Notas (opcional)</label>
+        <input id="edit-notas" type="text" autocomplete="off"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Opcional..." />
+      </div>
+
+      <div class="flex gap-3 pt-1">
+        <button id="btnGuardarEdit" onclick="App.saveEdit()"
+          class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+          Guardar cambios
+        </button>
+        <button onclick="App.closeEditModal()"
+          class="flex-1 border border-gray-300 text-gray-600 py-3 rounded-xl hover:bg-gray-50 transition">
+          Cancelar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // APP
@@ -509,6 +645,7 @@ const App = (() => {
     filteredRegs:  [],
     movimientos:   [],
     pagoReg:       null,   // registro actualmente en el modal de pago
+    editReg:       null,   // registro actualmente en el modal de edición
   };
 
   // ──────────────────────────────────────────────────────────
@@ -831,6 +968,7 @@ const App = (() => {
             </div>
             <div class="flex gap-3">
               ${btnPago}
+              <button onclick="App.openEdit('${r.id}')" class="text-gray-500 text-xs hover:text-gray-800">✏️ Editar</button>
               <button onclick="App.deleteReg('${r.id}')" class="text-red-400 text-xs hover:text-red-600">Borrar</button>
             </div>
           </div>
@@ -1083,6 +1221,126 @@ const App = (() => {
 
   function closePagoModal() { hide('pagoModal'); state.pagoReg = null; }
 
+  // ──────────────────────────────────────────────────────────
+  // EDITAR REGISTRO
+  // ──────────────────────────────────────────────────────────
+  function openEdit(id) {
+    const reg = state.registrations.find(r => r.id === id);
+    if (!reg) return;
+    state.editReg = reg;
+
+    document.getElementById('edit-nombre').value = reg.nombre || '';
+
+    document.querySelectorAll('input[name="edit-genero"]').forEach(r => {
+      r.checked = r.value === reg.genero;
+    });
+
+    const sel = document.getElementById('edit-tipoPrecio');
+    sel.innerHTML = (state.config.priceTypes || [])
+      .map(t => `<option value="${esc(t.name)}" data-amount="${t.amount}">${esc(t.name)} — $${fmt(t.amount)}</option>`)
+      .join('');
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === reg.tipoPrecio) { sel.selectedIndex = i; break; }
+    }
+    onEditTipoChange();
+
+    document.getElementById('edit-cantidad').value = reg.cantidad || 1;
+    calcEditTotal();
+
+    document.querySelectorAll('input[name="edit-estado"]').forEach(r => {
+      r.checked = r.value === reg.estado;
+    });
+    document.getElementById('edit-montoPagado').value = reg.montoPagado || 0;
+    onEditEstadoChange();
+
+    document.querySelectorAll('input[name="edit-metodo"]').forEach(r => {
+      r.checked = r.value === reg.metodoPago;
+    });
+
+    document.getElementById('edit-notas').value = reg.notas || '';
+
+    show('editModal');
+  }
+
+  function onEditTipoChange() {
+    const sel = document.getElementById('edit-tipoPrecio');
+    const opt = sel.options[sel.selectedIndex];
+    const amt = parseFloat(opt?.dataset?.amount) || 0;
+    document.getElementById('edit-precioLabel').textContent = amt ? `Precio unitario: $${fmt(amt)}` : '';
+    calcEditTotal();
+  }
+
+  function changeEditQty(delta) {
+    const inp = document.getElementById('edit-cantidad');
+    inp.value = Math.max(1, (parseInt(inp.value) || 1) + delta);
+    calcEditTotal();
+  }
+
+  function calcEditTotal() {
+    const sel = document.getElementById('edit-tipoPrecio');
+    const opt = sel.options[sel.selectedIndex];
+    const amt = parseFloat(opt?.dataset?.amount) || 0;
+    const qty = parseInt(document.getElementById('edit-cantidad').value) || 1;
+    if (amt && qty) {
+      show('edit-totalBox');
+      document.getElementById('edit-totalLabel').textContent = `$${fmt(amt * qty)}`;
+    } else {
+      hide('edit-totalBox');
+    }
+  }
+
+  function onEditEstadoChange() {
+    const estado = getRadioVal('edit-estado');
+    document.getElementById('edit-señaBox').classList.toggle('hidden', estado !== 'seña');
+    document.getElementById('edit-metodoPagoBox').classList.toggle('hidden', estado === 'pendiente');
+  }
+
+  async function saveEdit() {
+    const reg = state.editReg;
+    if (!reg) return;
+
+    const nombre     = document.getElementById('edit-nombre').value.trim();
+    const genero     = getRadioVal('edit-genero');
+    const estado     = getRadioVal('edit-estado');
+    const cantidad   = parseInt(document.getElementById('edit-cantidad').value) || 1;
+    const notas      = document.getElementById('edit-notas').value.trim();
+    const metodoPago = getRadioVal('edit-metodo');
+
+    const sel = document.getElementById('edit-tipoPrecio');
+    const opt = sel.options[sel.selectedIndex];
+    const tipoPrecio     = opt?.value || '';
+    const precioUnitario = parseFloat(opt?.dataset?.amount) || 0;
+
+    if (!nombre)     { toast('Ingresá el nombre.', 'error'); return; }
+    if (!genero)     { toast('Seleccioná el tipo de entrada.', 'error'); return; }
+    if (!tipoPrecio) { toast('Seleccioná el tipo de tarjeta.', 'error'); return; }
+    if (!estado)     { toast('Seleccioná el estado de pago.', 'error'); return; }
+
+    const totalDebe = precioUnitario * cantidad;
+    let montoPagado = 0;
+    if (estado === 'pagado')    montoPagado = totalDebe;
+    else if (estado === 'seña') montoPagado = parseFloat(document.getElementById('edit-montoPagado').value) || 0;
+
+    const fields = { nombre, genero, cantidad, tipoPrecio, precioUnitario, totalDebe, montoPagado, estado, metodoPago, notas };
+
+    const btnGuardar = document.getElementById('btnGuardarEdit');
+    if (btnGuardar) { btnGuardar.disabled = true; btnGuardar.textContent = 'Guardando...'; }
+    showLoading(true);
+    try {
+      const r = await api('updateRegistration', { id: reg.id, fields });
+      if (r.success) {
+        toast('✅ Registro actualizado');
+        closeEditModal();
+        await loadAll();
+      } else toast('❌ ' + (r.error || 'Error'), 'error');
+    } finally {
+      showLoading(false);
+      if (btnGuardar) { btnGuardar.disabled = false; btnGuardar.textContent = 'Guardar cambios'; }
+    }
+  }
+
+  function closeEditModal() { hide('editModal'); state.editReg = null; }
+
   async function deleteReg(id) {
     const reg = state.registrations.find(r => r.id === id);
     const nombre = reg ? reg.nombre : 'este registro';
@@ -1300,6 +1558,7 @@ const App = (() => {
     addPriceType, removePriceType, updatePriceType,
     onTipoChange, changeQty, calcTotal, onEstadoChange, calcDeuda, submitRegistro,
     filterList, openPago, onPagoTipoChange, onParcialTipoChange, calcPagoPreview, savePago, closePagoModal,
+    openEdit, closeEditModal, onEditTipoChange, changeEditQty, calcEditTotal, onEditEstadoChange, saveEdit,
     deleteReg, exportCSV,
   };
 })();
