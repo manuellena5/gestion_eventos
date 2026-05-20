@@ -929,8 +929,11 @@ const App = (() => {
       return;
     }
 
-    const order = { pendiente: 0, seña: 1, pagado: 2 };
-    const sorted = [...regs].sort((a, b) => (order[a.estado] || 0) - (order[b.estado] || 0));
+    const sorted = [...regs].sort((a, b) => {
+      const ta = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const tb = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+      return tb - ta;
+    });
 
     container.innerHTML = sorted.map(r => {
       const totalDebe    = Number(r.totalDebe)    || 0;
