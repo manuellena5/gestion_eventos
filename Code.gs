@@ -127,11 +127,44 @@ function getRegistrations() {
 
   const data = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
 
+  // Asignar ID automáticamente a filas que no lo tienen (registros manuales)
+  const idColIndex = HEADERS.indexOf('id');
+  const tsColIndex = HEADERS.indexOf('timestamp');
+  for (var i = 0; i < data.length; i++) {
+    if (data[i][idColIndex] === '' || data[i][idColIndex] === null || data[i][idColIndex] === undefined) {
+      // Verificar que la fila tenga al menos el nombre para no asignar ID a filas vacías
+      var nombreColIndex = HEADERS.indexOf('nombre');
+      if (data[i][nombreColIndex] === '' || data[i][nombreColIndex] === null) continue;
+
+      var newId = generateId();
+      data[i][idColIndex] = newId;
+      sheet.getRange(i + 2, idColIndex + 1).setValue(newId);
+
+      // Si tampoco tiene timestamp, asignarlo
+      if (data[i][tsColIndex] === '' || data[i][tsColIndex] === null) {
+        var newTs = new Date().toISOString();
+        data[i][tsColIndex] = newTs;
+        sheet.getRange(i + 2, tsColIndex + 1).setValue(newTs);
+      }
+    }
+  }
+
+  const numericFields = ['cantidad', 'precioUnitario', 'totalDebe', 'montoPagado'];
+
   const registrations = data
-    .filter(function(row) { return row[0] !== ''; })
+    .filter(function(row) { return row[idColIndex] !== '' && row[idColIndex] !== null; })
     .map(function(row) {
       const obj = {};
-      HEADERS.forEach(function(h, i) { obj[h] = row[i]; });
+      HEADERS.forEach(function(h, i) {
+        var val = row[i];
+        // Normalizar campos numéricos
+        if (numericFields.indexOf(h) >= 0) {
+          val = Number(val) || 0;
+        }
+        obj[h] = val;
+      });
+      // Valor por defecto para estado
+      if (!obj['estado']) obj['estado'] = 'pendiente';
       return obj;
     });
 
