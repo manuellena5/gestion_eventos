@@ -233,7 +233,7 @@
       <p id="print-date" class="text-sm text-gray-500 mb-3"></p>
       <table id="printTable">
         <thead><tr>
-          <th>Nombre</th><th>Tipo</th><th>Cant.</th><th>Pagado</th><th>Debe</th><th>Total</th>
+          <th style="width:110px">Nombre</th><th style="width:70px">Tipo</th><th>Cant.</th><th>Pagado</th><th>Debe</th><th>Total</th><th style="width:55px">M. Pago</th>
         </tr></thead>
         <tbody id="printTableBody"></tbody>
       </table>
@@ -985,11 +985,12 @@ const App = (() => {
     document.getElementById('print-title').textContent = state.config.eventName || 'Club Deportivo Mitre';
     document.getElementById('print-date').textContent  = state.config.eventDate ? 'Fecha: ' + formatDate(state.config.eventDate) : '';
     const tbody = document.getElementById('printTableBody');
-    const regs  = state.filteredRegs;
+    const regs  = [...state.filteredRegs].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
     tbody.innerHTML = regs.map(r => {
       const totalDebe   = Number(r.totalDebe)   || 0;
       const montoPagado = Number(r.montoPagado) || 0;
       const debe        = totalDebe - montoPagado;
+      const mp = r.metodoPago === 'efectivo' ? 'E' : r.metodoPago === 'transferencia' ? 'T' : '';
       return `<tr>
         <td>${esc(r.nombre)}</td>
         <td>${esc(r.tipoPrecio)}</td>
@@ -997,6 +998,7 @@ const App = (() => {
         <td style="text-align:right">$${fmt(montoPagado)}</td>
         <td style="text-align:right">${debe > 0 ? '$' + fmt(debe) : '—'}</td>
         <td style="text-align:right">$${fmt(totalDebe)}</td>
+        <td style="text-align:center">${mp}</td>
       </tr>`;
     }).join('');
   }
