@@ -9,6 +9,7 @@ Datos almacenados en Google Sheets via Apps Script. Frontend en GitHub Pages.
 
 ```
 ├── index.html    ← La WebApp (va a GitHub Pages)
+├── config.js     ← URL del backend y versión de la app
 └── Code.gs       ← El backend (va a Google Apps Script)
 ```
 
@@ -66,9 +67,13 @@ Datos almacenados en Google Sheets via Apps Script. Frontend en GitHub Pages.
 
 ### PASO 5 — Conectar la WebApp
 
-1. Abrir la URL de GitHub Pages en el navegador.
-2. Aparece la pantalla de configuración inicial.
-3. Pegar la URL del Web App (del Paso 3) y hacer clic en **"Guardar y continuar"**.
+1. Abrir el archivo `config.js` y pegar la URL del Web App (del Paso 3) en `API_URL`:
+   ```js
+   const API_URL = 'https://script.google.com/macros/s/AKfy.../exec';
+   ```
+2. Subir `config.js` junto con `index.html` al repositorio.
+3. Abrir la URL de GitHub Pages en el navegador: la app ya entra directo, sin pedir la URL.
+   > Al actualizar el script usar **Implementar → Administrar implementaciones → Editar (lápiz) → Versión: Nueva versión → Implementar**. Así la URL no cambia y no hay que tocar `config.js`.
 4. Ir a la pestaña **⚙️ Config** y configurar:
    - Nombre del evento (ej: "Peña Folklórica — Junio 2025")
    - Fecha del evento
