@@ -112,10 +112,28 @@ Datos almacenados en Google Sheets via Apps Script. Frontend en GitHub Pages.
 
 Si el script cambia en el futuro:
 
-1. En el editor de Apps Script, copiar el nuevo `Code.gs`.
-2. Ir a **"Implementar" → "Gestionar implementaciones"**.
-3. Editar la implementación existente y aumentar la versión.
-4. Guardar. La URL del Web App **no cambia**.
+1. En el editor de Apps Script, reemplazar todo el contenido por el nuevo `Code.gs` y guardar.
+2. Ir a **Implementar → Administrar implementaciones**.
+3. Tocar el lápiz (**Editar**) de la implementación que ya existe.
+4. En **Versión** elegir **Nueva versión** y tocar **Implementar**.
+5. La URL del Web App **no cambia** (no hace falta tocar `config.js`).
+
+> ⚠️ No usar "Nueva implementación": eso crea otra URL y la app dejaría de conectarse.
+
+---
+
+## 🧪 Versión 2 — probar el backend nuevo y migrar (en curso)
+
+La versión 2 agrega hojas nuevas (`Usuarios`, `Eventos`, `Productos`, `Pedidos`, `Items`, `Pagos`, `Contactos`), que se crean solas. Las hojas viejas (`Registros`, `Config`, `Movimientos` y las archivadas `Registros X` / `Movimientos X`) **no se borran ni se modifican**, y la app actual sigue funcionando.
+
+**Probar primero en una copia de la planilla:** Archivo → Hacer una copia (copia también el script). En la copia, abrir Extensiones → Apps Script y, eligiendo la función en el desplegable de arriba y tocando **Ejecutar**:
+
+1. `testV2` — corre todas las pruebas. En el registro tiene que decir "Todas las pruebas pasaron".
+2. `borrarDatosDePrueba` — borra lo que creó la prueba.
+3. `migrarDesdeV1` — pasa los datos viejos a la versión 2. El registro muestra, por cada evento, los totales de antes y de ahora y "¿Coinciden los totales? SÍ". Se puede ejecutar de nuevo: no duplica nada.
+4. (Opcional) `prepararPruebaCupo` — necesita que la copia esté implementada como Web App. Muestra un código para pegar en la consola del navegador (F12) que manda dos pedidos a la vez por el último lugar: solo uno tiene que pasar. Después, `borrarDatosDePrueba`.
+
+**Usuarios:** en la hoja `Usuarios` escribir un nombre por fila (columna `nombre`). `pin` vacío = entra sin contraseña; para poner un PIN, escribirlo en `pin`. Para sacar a alguien, poner `FALSE` en `activo`. El `id` se completa solo.
 
 ---
 
