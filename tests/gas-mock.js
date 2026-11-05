@@ -28,7 +28,7 @@ class Sheet {
 }
 class Range {
   constructor(sh, r, c, nr, nc) { Object.assign(this, { sh, r, c, nr, nc }); }
-  getValues() { this.sh.ops++; const out = []; for (let i = 0; i < this.nr; i++) { const row = []; for (let j = 0; j < this.nc; j++) { const v = this.sh.get(this.r + i, this.c + j); row.push(v instanceof Date ? new Date(v) : v); } out.push(row); } return out; }
+  getValues() { const st = Range.stats; if (st && st.failEvery && ++st.reads % st.failEvery === 0) { st.failed++; throw new Error('Exception: El servicio Hojas de cálculo no ha podido acceder al documento con ID X.'); } this.sh.ops++; const out = []; for (let i = 0; i < this.nr; i++) { const row = []; for (let j = 0; j < this.nc; j++) { const v = this.sh.get(this.r + i, this.c + j); row.push(v instanceof Date ? new Date(v) : v); } out.push(row); } return out; }
   setValues(vals) { this.sh.ops++; if (vals.length !== this.nr || vals.some(r => r.length !== this.nc)) throw new Error('Tamaño incorrecto en setValues: ' + vals.length + 'x' + (vals[0] || []).length + ' vs ' + this.nr + 'x' + this.nc); vals.forEach((row, i) => row.forEach((v, j) => this.sh.set(this.r + i, this.c + j, v))); return this; }
   setValue(v) { this.sh.set(this.r, this.c, v); return this; }
   setNumberFormat(f) { for (let i = 0; i < this.nr; i++) for (let j = 0; j < this.nc; j++) this.sh.fmt[(this.r + i) + ',' + (this.c + j)] = f; return this; }
@@ -52,6 +52,8 @@ function makeEnv() {
   const props = {}; const cache = {};
   const lockState = { held: false, log: [] };
   const logs = [];
+  const stats = { tz: 0, failEvery: 0, reads: 0, failed: 0 };
+  Range.stats = stats;
   const ctx = {
     console: { log: (...a) => logs.push(a.join(' ')), error: (...a) => logs.push('ERROR ' + a.join(' ')) },
     SpreadsheetApp: { getActiveSpreadsheet: () => ss, flush: () => {} },
@@ -61,8 +63,8 @@ function makeEnv() {
       releaseLock: () => { lockState.held = false; lockState.log.push('unlock'); } }) },
     CacheService: { getScriptCache: () => ({ get: k => cache[k] || null, put: (k, v) => { cache[k] = v; } }) },
     PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] === undefined ? null : props[k], setProperty: (k, v) => { props[k] = String(v); }, deleteProperty: k => { delete props[k]; } }) },
-    Utilities: { formatDate },
-    Session: { getScriptTimeZone: () => 'America/Argentina/Buenos_Aires' },
+    Utilities: { formatDate, sleep: () => {} },
+    Session: { getScriptTimeZone: () => { stats.tz++; return 'America/Argentina/Buenos_Aires'; } },
     Logger: { log: (s) => logs.push(String(s)) },
     ContentService: { createTextOutput: s => ({ content: s, setMimeType() { return this; } }), MimeType: { JSON: 'json' } },
     ScriptApp: { getService: () => ({ getUrl: () => 'https://script.google.com/macros/s/TEST/exec' }) },
@@ -70,6 +72,6 @@ function makeEnv() {
   };
   vm.createContext(ctx);
   vm.runInContext(fs.readFileSync(require('path').join(__dirname, '..', 'Code.gs'), 'utf8'), ctx, { filename: 'Code.gs' });
-  return { ss, ctx, props, cache, logs, lockState, run: code => vm.runInContext(code, ctx) };
+  return { ss, ctx, props, cache, logs, lockState, stats, run: code => vm.runInContext(code, ctx) };
 }
 module.exports = { makeEnv, Sheet };

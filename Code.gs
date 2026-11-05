@@ -475,22 +475,53 @@ function runV2(action, rawData) {
 // ============================================================
 
 let _v2Tables = {};
-let _v2Ensured = {};
+let _v2Ensured = {};   // hojas ya revisadas en esta ejecución
+let _v2Sheets = {};
+let _v2Ss = null;
+let _v2Tz = null;
 let _v2HoldsLock = false;
-function _v2Reset() { _v2Tables = {}; _v2Ensured = {}; }
+function _v2Reset() { _v2Tables = {}; }
+function v2Tz() { if (!_v2Tz) _v2Tz = Session.getScriptTimeZone(); return _v2Tz; }
 
 function v2Type(name, h) { return (V2_SCHEMA[name].types || {})[h] || 'text'; }
 
+// Reintenta ante errores temporales de Google ("no ha podido acceder al documento", etc.)
+// Solo se usa para lecturas y para crear hojas, nunca para agregar filas (no duplicar).
+function v2Retry(fn) {
+  for (let i = 0; ; i++) {
+    try { return fn(); }
+    catch (e) {
+      const msg = String(e && e.message || e);
+      const temporal = /no ha podido acceder|failed while accessing|Service (error|Spreadsheets)|servicio|timed out|tiempo de espera|try again|vuelve a intentarlo|Internal error|error interno/i.test(msg);
+      if (!temporal || i >= 3) throw e;
+      Utilities.sleep(400 * (i + 1) + Math.floor(Math.random() * 300));
+      _v2Ss = null; _v2Sheets = {};
+    }
+  }
+}
+
+function v2Ss() {
+  if (!_v2Ss) _v2Ss = SpreadsheetApp.getActiveSpreadsheet();
+  return _v2Ss;
+}
+
+// Devuelve la hoja; si no existe la crea con encabezados en negrita, fila 1 fija y formato texto.
 function v2EnsureSheet(name) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (_v2Sheets[name]) return _v2Sheets[name];
+  const ss = v2Ss();
   let sh = ss.getSheetByName(name);
-  if (_v2Ensured[name] && sh) return sh;
-  const headers = V2_SCHEMA[name].headers;
   if (!sh) {
     try { sh = ss.insertSheet(name); }
     catch (e) { sh = ss.getSheetByName(name); if (!sh) throw e; } // otro pedido la creó al mismo tiempo
   }
-  if (sh.getLastRow() === 0) {
+  _v2Sheets[name] = sh;
+  return sh;
+}
+
+function v2SetupHeaders(name, sh, values) {
+  const headers = V2_SCHEMA[name].headers;
+  const vacia = values.length <= 1 && values[0].every(function (v) { return v === '' || v === null; });
+  if (vacia) {
     sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
     sh.setFrozenRows(1);
     const maxRows = sh.getMaxRows();
@@ -498,21 +529,22 @@ function v2EnsureSheet(name) {
       const t = v2Type(name, h);
       if (t === 'text' || t === 'date' || t === 'time') sh.getRange(1, i + 1, maxRows, 1).setNumberFormat('@');
     });
-  } else {
-    // Agregar al final los encabezados que falten (no se toca nada más)
-    const lastCol = Math.max(sh.getLastColumn(), 1);
-    const current = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(function (v) { return String(v).trim(); });
-    const missing = headers.filter(function (h) { return current.indexOf(h) < 0; });
-    if (missing.length) {
-      sh.getRange(1, lastCol + 1, 1, missing.length).setValues([missing]).setFontWeight('bold');
-    }
+    return [headers.slice()];
   }
-  _v2Ensured[name] = true;
-  return sh;
+  // Agregar al final los encabezados que falten (no se toca nada más)
+  const current = values[0].map(function (v) { return String(v).trim(); });
+  const missing = headers.filter(function (h) { return current.indexOf(h) < 0; });
+  if (missing.length) {
+    let lastCol = current.length;
+    while (lastCol > 0 && !current[lastCol - 1]) lastCol--;
+    sh.getRange(1, lastCol + 1, 1, missing.length).setValues([missing]).setFontWeight('bold');
+    return v2Retry(function () { return sh.getDataRange().getValues(); });
+  }
+  return values;
 }
 
 function v2FromCell(v, type) {
-  const tz = Session.getScriptTimeZone();
+  const tz = v2Tz();
   switch (type) {
     case 'num':    return Number(v) || 0;
     case 'numOpt': return (v === '' || v === null || v === undefined) ? null : (Number(v) || 0);
@@ -540,8 +572,15 @@ function v2ToCell(v, type) {
 // Devuelve { name, sheet, idx, rows, width } — rows: objetos con _row (n° de fila) y _raw
 function v2Table(name) {
   if (_v2Tables[name]) return _v2Tables[name];
-  const sh = v2EnsureSheet(name);
-  const values = sh.getDataRange().getValues();
+  let sh = null;
+  let values = v2Retry(function () {
+    sh = v2EnsureSheet(name);
+    return sh.getDataRange().getValues();
+  });
+  if (!_v2Ensured[name]) {
+    values = v2SetupHeaders(name, sh, values);
+    _v2Ensured[name] = true;
+  }
   const head = values[0].map(function (v) { return String(v).trim(); });
   const idx = {};
   head.forEach(function (h, i) { if (h && idx[h] === undefined) idx[h] = i; });
